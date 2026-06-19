@@ -1,16 +1,21 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const fs = require('fs');
 
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+const dbDir = path.join(__dirname, '..', '..', 'database');
+const dbPath = path.join(dbDir, 'freelamz.db');
+
+// Criar a pasta database se nao existir
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+}
+
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('Erro ao abrir a base de dados:', err.message);
+  } else {
+    console.log('Base de dados SQLite conectada em:', dbPath);
+  }
 });
 
-pool.connect()
-  .then(() => console.log('Base de dados conectada!'))
-  .catch(err => console.error('Erro na base de dados:', err));
-
-module.exports = pool;
+module.exports = db;

@@ -1,69 +1,77 @@
--- Extensão para UUID
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 -- Tabela de utilizadores
 CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  role VARCHAR(20) DEFAULT 'freelancer' CHECK (role IN ('freelancer', 'client')),
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  role TEXT DEFAULT 'freelancer' CHECK (role IN ('freelancer', 'client')),
   bio TEXT,
-  skills TEXT[],
-  avatar VARCHAR(255),
-  created_at TIMESTAMP DEFAULT NOW()
+  skills TEXT,
+  avatar TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Tabela de projectos
 CREATE TABLE IF NOT EXISTS projects (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(200) NOT NULL,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
   description TEXT NOT NULL,
-  budget DECIMAL(10,2),
-  category VARCHAR(100),
-  status VARCHAR(20) DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'completed', 'cancelled')),
-  client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  created_at TIMESTAMP DEFAULT NOW()
+  budget REAL,
+  category TEXT,
+  status TEXT DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'completed', 'cancelled')),
+  client_id INTEGER,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Tabela de propostas
 CREATE TABLE IF NOT EXISTS proposals (
-  id SERIAL PRIMARY KEY,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-  freelancer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER,
+  freelancer_id INTEGER,
   cover_letter TEXT,
-  price DECIMAL(10,2),
-  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
-  created_at TIMESTAMP DEFAULT NOW()
+  price REAL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (freelancer_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Tabela de mensagens
 CREATE TABLE IF NOT EXISTS messages (
-  id SERIAL PRIMARY KEY,
-  sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  sender_id INTEGER,
+  receiver_id INTEGER,
   content TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Tabela de avaliações
 CREATE TABLE IF NOT EXISTS reviews (
-  id SERIAL PRIMARY KEY,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-  reviewer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  reviewed_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER,
+  reviewer_id INTEGER,
+  reviewed_id INTEGER,
   rating INTEGER CHECK (rating BETWEEN 1 AND 5),
   comment TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewer_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (reviewed_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Tabela de pagamentos simulados
 CREATE TABLE IF NOT EXISTS payments (
-  id SERIAL PRIMARY KEY,
-  project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
-  client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  freelancer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  amount DECIMAL(10,2),
-  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'refunded')),
-  created_at TIMESTAMP DEFAULT NOW()
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id INTEGER,
+  client_id INTEGER,
+  freelancer_id INTEGER,
+  amount REAL,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'refunded')),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (client_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (freelancer_id) REFERENCES users(id) ON DELETE CASCADE
 );
