@@ -1,123 +1,104 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
-const categories = [
-  { name: "Programacao e Tecnologia", icon: "??", color: "bg-green-800" },
-  { name: "Design Grafico", icon: "??", color: "bg-orange-700" },
-  { name: "Marketing Digital", icon: "??", color: "bg-yellow-600" },
-  { name: "Redacao e Traducao", icon: "??", color: "bg-blue-700" },
-  { name: "Video e Animacao", icon: "??", color: "bg-purple-700" },
-  { name: "Servicos de IA", icon: "??", color: "bg-indigo-700" },
-  { name: "Musica e Audio", icon: "??", color: "bg-pink-700" },
-  { name: "Negocios", icon: "??", color: "bg-teal-700" },
-];
+export default function ClientDashboard() {
+  const [user, setUser] = useState<any>(null);
 
-const popularServices = [
-  { title: "Desenvolvimento de Websites", image: "??", color: "bg-green-800" },
-  { title: "Edicao de video", image: "??", color: "bg-orange-700" },
-  { title: "Desenvolvimento de Software", image: "??", color: "bg-yellow-700" },
-  { title: "Publicacao de livros", image: "??", color: "bg-teal-700" },
-  { title: "Arquitetura e Design de Interiores", image: "??", color: "bg-pink-700" },
-];
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+    setUser({ name: username || "Cliente", role: "client" });
+  }, []);
 
-export default function Home() {
+  if (!user) return <div className="min-h-screen flex items-center justify-center">A carregar...</div>;
+
   return (
-    <main className="min-h-screen bg-white">
+    <main className="min-h-screen bg-gray-50">
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative bg-gray-900 text-white overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 to-gray-900/90" />
-        <div className="relative max-w-7xl mx-auto px-4 py-24">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Nossos freelancers<br />darao continuidade ao<br />trabalho.
-          </h1>
-          <div className="max-w-2xl">
-            <div className="flex items-center bg-white rounded-lg overflow-hidden">
-              <input 
-                type="text" 
-                placeholder="Pesquise qualquer servico..."
-                className="flex-1 px-4 py-3 text-gray-800 focus:outline-none"
-              />
-              <button className="bg-black text-white px-6 py-3 hover:bg-gray-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </button>
+      <section className="bg-gradient-to-r from-blue-50 to-green-50 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user.name}</h1>
+          <p className="text-gray-600 mb-8">Encontre os melhores freelancers para os seus projetos</p>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Card 1 */}
+            <Link href="/projects/new" className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition block">
+              <div className="text-3xl mb-3">➕</div>
+              <h3 className="font-bold mb-2">Publicar um novo projeto</h3>
+              <p className="text-gray-600 text-sm">Descreva o que precisa e receba propostas de freelancers qualificados</p>
+            </Link>
+            
+            {/* Card 2 */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
+              <div className="text-3xl mb-3">📋</div>
+              <h3 className="font-bold mb-2">Meus projetos</h3>
+              <p className="text-gray-600 text-sm">Acompanhe o progresso dos seus projetos em andamento</p>
+            </div>
+            
+            {/* Card 3 */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
+              <div className="text-3xl mb-3">💬</div>
+              <h3 className="font-bold mb-2">Mensagens</h3>
+              <p className="text-gray-600 text-sm">Converse com freelancers sobre seus projetos</p>
             </div>
           </div>
-          
-          {/* Quick Tags */}
-          <div className="flex flex-wrap gap-3 mt-6">
-            {["Desenvolvimento de Websites", "Arquitetura e Design de Interiores", "Videos UGC", "Edicao de video", "Publicacao de livros"].map((tag) => (
-              <span key={tag} className="bg-white/20 backdrop-blur px-4 py-2 rounded-full text-sm hover:bg-white/30 cursor-pointer transition">
-                {tag} ?
-              </span>
-            ))}
-          </div>
         </div>
       </section>
 
-      {/* Trusted By */}
-      <section className="py-6 border-b">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-8">
-          <span className="text-gray-500 text-sm font-medium">Aprovado por:</span>
-          <div className="flex gap-8 text-gray-400 font-bold text-lg">
-            <span>Meta</span>
-            <span>Google</span>
-            <span>NETFLIX</span>
-            <span>P&G</span>
-            <span>PayPal</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Categories */}
+      {/* Projetos Ativos */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {categories.map((cat) => (
-              <div key={cat.name} className="flex-shrink-0 w-40 text-center group cursor-pointer">
-                <div className={`${cat.color} text-white h-32 rounded-xl flex items-center justify-center text-4xl mb-3 group-hover:opacity-90 transition`}>
-                  {cat.icon}
-                </div>
-                <p className="text-sm font-medium text-gray-700">{cat.name}</p>
-              </div>
-            ))}
+          <h2 className="text-2xl font-bold mb-6">Projetos em andamento</h2>
+          
+          <div className="bg-white rounded-xl border p-8 text-center">
+            <div className="text-6xl mb-4">📁</div>
+            <h3 className="text-xl font-medium mb-2">Nenhum projeto ativo</h3>
+            <p className="text-gray-600 mb-4">Publique seu primeiro projeto e encontre freelancers talentosos</p>
+            <Link href="/projects/new" className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700">
+              Publicar Projeto
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Popular Services */}
+      {/* Freelancers Recomendados */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold mb-8">Servicos populares</h2>
-          <div className="flex gap-4 overflow-x-auto pb-4">
-            {popularServices.map((service) => (
-              <div key={service.title} className="flex-shrink-0 w-64 cursor-pointer group">
-                <div className={`${service.color} h-48 rounded-xl p-6 flex flex-col justify-between group-hover:opacity-90 transition`}>
-                  <h3 className="text-white font-bold text-lg leading-tight">{service.title}</h3>
-                  <div className="text-6xl text-center opacity-80">{service.image}</div>
+          <h2 className="text-2xl font-bold mb-6">Freelancers recomendados</h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { name: "João M.", skill: "Desenvolvimento Web", rating: 4.9, jobs: 127, image: "👨‍💻" },
+              { name: "Maria S.", skill: "Design Gráfico", rating: 4.8, jobs: 89, image: "👩‍🎨" },
+              { name: "Pedro A.", skill: "Marketing Digital", rating: 4.7, jobs: 56, image: "👨‍💼" },
+              { name: "Ana L.", skill: "Tradução", rating: 5.0, jobs: 203, image: "👩‍🏫" },
+            ].map((freelancer, i) => (
+              <div key={i} className="bg-white rounded-xl border p-6 hover:shadow-md transition">
+                <div className="text-4xl mb-3 text-center">{freelancer.image}</div>
+                <h3 className="font-bold text-center mb-1">{freelancer.name}</h3>
+                <p className="text-gray-600 text-sm text-center mb-3">{freelancer.skill}</p>
+                <div className="flex justify-center items-center gap-2 mb-3">
+                  <span className="text-yellow-500">★</span>
+                  <span className="font-medium">{freelancer.rating}</span>
+                  <span className="text-gray-400 text-sm">({freelancer.jobs} trabalhos)</span>
                 </div>
+                <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                  Ver Perfil
+                </button>
               </div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Pronto para comecar?</h2>
-          <p className="text-gray-600 mb-8 max-w-xl mx-auto">Junta-te a centenas de mocambicanos que ja usam o Freelamz para trabalhar e contratar.</p>
-          <Link href="/register" className="inline-block bg-green-600 text-white px-10 py-4 rounded-lg font-bold hover:bg-green-700 transition text-lg">
-            Criar Conta Gratis
-          </Link>
-        </div>
-      </section>
-      
-      <Footer />
     </main>
   );
 }

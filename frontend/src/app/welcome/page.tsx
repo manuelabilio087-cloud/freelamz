@@ -12,12 +12,13 @@ export default function Welcome() {
     const stored = localStorage.getItem("username");
     if (stored) setUsername(stored);
   }, []);
-
-  const handleNext = () => {
-    if (selected === "client") router.push("/dashboard");
-    else if (selected === "freelancer") router.push("/profile");
-  };
-
+const handleNext = () => {
+  if (selected === "client") {
+    router.push("/client-dashboard");  // Cliente vai para dashboard de cliente
+  } else if (selected === "freelancer") {
+    router.push("/dashboard");  // Freelancer vai para dashboard normal
+  }
+};
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8">
