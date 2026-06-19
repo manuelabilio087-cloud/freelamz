@@ -52,18 +52,15 @@ export default function Projects() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
-              <div key={project.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+              <Link href={`/projects/${project.id}`} key={project.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition block">
                 <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
                 <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-blue-600 font-semibold">{project.budget} MZN</span>
                   <span className="text-gray-500 text-sm bg-gray-100 px-2 py-1 rounded">{project.category}</span>
                 </div>
-                <p className="text-sm text-gray-500 mb-4">Por: {project.client_name}</p>
-                <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
-                  Enviar Proposta
-                </button>
-              </div>
+                <p className="text-sm text-gray-500">Por: {project.client_name}</p>
+              </Link>
             ))}
           </div>
         )}
