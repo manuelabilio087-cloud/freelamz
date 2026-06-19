@@ -2,31 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { registerUser } from "@/lib/api";
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("freelancer");
   const [message, setMessage] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage("");
-    try {
-      const data = await registerUser({ name, email, password, role });
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        setMessage("Registo feito com sucesso!");
-        window.location.href = "/dashboard";
-      } else {
-        setMessage(data.message || "Erro no registo");
-      }
-    } catch (err) {
-      setMessage("Erro de conexao");
-    }
-  };
 
   return (
     <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
@@ -90,47 +68,6 @@ export default function Register() {
               <span className="text-blue-600">f</span> Facebook
             </button>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Nome completo"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Senha"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="freelancer">Quero trabalhar (Freelancer)</option>
-              <option value="client">Quero contratar (Cliente)</option>
-            </select>
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold transition"
-            >
-              Criar Conta
-            </button>
-          </form>
 
           <p className="text-xs text-gray-500 mt-4 text-center">
             Ao se cadastrar, voce concorda com os <Link href="#" className="text-green-600 hover:underline">Termos de Servico</Link> do Freelamz.
