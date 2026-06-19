@@ -10,10 +10,9 @@ const messageRoutes = require('./routes/messageRoutes');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'https://freelamz-frontend-i673y6i5c-manuelabilio.vercel.app'],
   credentials: true
 }));
-app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
