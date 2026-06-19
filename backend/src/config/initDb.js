@@ -1,36 +1,73 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const pool = require('./db');
 
-const dbPath = 'C:\\Users\\Dell laptop\\Desktop\\freelamz\\database\\freelamz.db';
-const schemaPath = 'C:\\Users\\Dell laptop\\Desktop\\freelamz\\database\\schema.sql';
+const initDb = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role VARCHAR(50) DEFAULT 'freelancer',
+        bio TEXT,
+        skills TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-console.log('Caminho da BD:', dbPath);
-console.log('Caminho do schema:', schemaPath);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        description TEXT NOT NULL,
+        budget DECIMAL(10,2) NOT NULL,
+        category VARCHAR(100),
+        client_id INTEGER REFERENCES users(id),
+        status VARCHAR(50) DEFAULT 'open',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Erro ao criar a base de dados:', err.message);
-    return;
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS proposals (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER REFERENCES projects(id),
+        freelancer_id INTEGER REFERENCES users(id),
+        cover_letter TEXT,
+        price DECIMAL(10,2),
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER REFERENCES users(id),
+        receiver_id INTEGER REFERENCES users(id),
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id SERIAL PRIMARY KEY,
+        project_id INTEGER REFERENCES projects(id),
+        reviewer_id INTEGER REFERENCES users(id),
+        reviewee_id INTEGER REFERENCES users(id),
+        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    console.log('Tabelas criadas com sucesso!');
+    process.exit(0);
+  } catch (err) {
+    console.error('Erro ao criar tabelas:', err);
+    process.exit(1);
   }
-  console.log('Base de dados criada!');
-});
+};
 
-const schema = fs.readFileSync(schemaPath, 'utf8');
-const statements = schema.split(';').filter(s => s.trim());
-
-db.serialize(() => {
-  statements.forEach((statement) => {
-    if (statement.trim()) {
-      db.run(statement + ';', (err) => {
-        if (err) {
-          console.error('Erro:', err.message);
-        }
-      });
-    }
-  });
-});
-
-db.close(() => {
-  console.log('Tabelas criadas com sucesso!');
-});
+initDb();
