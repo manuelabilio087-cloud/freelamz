@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
+  const [token, setToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setToken(localStorage.getItem("token"));
+  }, []);
+
   return (
-    <nav className="bg-white shadow-md">
+    <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
@@ -12,10 +19,29 @@ export default function Navbar() {
               Freelamz
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
-            <Link href="/projects" className="text-gray-700 hover:text-blue-600">Projetos</Link>
-            <Link href="/login" className="text-gray-700 hover:text-blue-600">Entrar</Link>
-            <Link href="/register" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">Registar</Link>
+          <div className="flex items-center space-x-6">
+            <Link href="/projects" className="text-gray-700 hover:text-blue-600 font-medium">Projetos</Link>
+            {token ? (
+              <>
+                <Link href="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">Dashboard</Link>
+                <button 
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    window.location.href = "/";
+                  }}
+                  className="text-red-600 hover:text-red-700 font-medium"
+                >
+                  Sair
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className="text-gray-700 hover:text-blue-600 font-medium">Entrar</Link>
+                <Link href="/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 font-medium">
+                  Registar
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
