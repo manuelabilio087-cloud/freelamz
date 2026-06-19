@@ -27,53 +27,97 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6 text-blue-600">Entrar no Freelamz</h1>
-        
-        {message && (
-          <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg text-center">
-            {message}
+    <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-4xl w-full flex">
+        {/* Lado Esquerdo - Imagem */}
+        <div className="hidden md:flex w-1/2 bg-green-700 items-center justify-center p-8 relative">
+          <div className="text-white z-10">
+            <h2 className="text-3xl font-bold mb-4">O sucesso comeca aqui.</h2>
+            <ul className="space-y-3 text-lg">
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">?</span> Mais de 700 categorias
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">?</span> Trabalho de qualidade feito mais rapido
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-300">?</span> Acesso a talentos em todo Mocambique
+              </li>
+            </ul>
           </div>
-        )}
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <div className="absolute bottom-0 left-0 right-0">
+            <div className="bg-green-800/50 h-48 rounded-t-full mx-4"></div>
+          </div>
+        </div>
+
+        {/* Lado Direito - Formulario */}
+        <div className="w-full md:w-1/2 p-8 md:p-12">
+          <h1 className="text-2xl font-bold mb-2">Faca login na sua conta.</h1>
+          <p className="text-gray-600 mb-6">
+            Nao tem uma conta? <Link href="/register" className="text-green-600 hover:underline font-medium">Cadastre-se aqui.</Link>
+          </p>
+
+          {message && (
+            <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg text-sm">{message}</div>
+          )}
+
+          {/* Google */}
+          <button className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 mb-3 hover:bg-gray-50 transition">
+            <span className="text-xl">G</span>
+            <span className="font-medium">Continuar com o Google</span>
+          </button>
+
+          {/* Email */}
+          <button className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-lg py-3 mb-3 hover:bg-gray-50 transition">
+            <span className="text-xl">?</span>
+            <span className="font-medium">Continuar com o e-mail</span>
+          </button>
+
+          <div className="flex items-center gap-4 my-4">
+            <div className="flex-1 h-px bg-gray-300"></div>
+            <span className="text-gray-500 text-sm">ou</span>
+            <div className="flex-1 h-px bg-gray-300"></div>
+          </div>
+
+          {/* Apple & Facebook */}
+          <div className="flex gap-3 mb-6">
+            <button className="flex-1 flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-3 hover:bg-gray-50">
+              <span>??</span> Maca
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-3 hover:bg-gray-50">
+              <span className="text-blue-600">f</span> Facebook
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Email"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Senha"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
-          </div>
-          
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-semibold"
-          >
-            Entrar
-          </button>
-        </form>
-        
-        <p className="text-center mt-4 text-gray-600">
-          Nao tens conta?{" "}
-          <Link href="/register" className="text-blue-600 hover:underline">
-            Regista-te
-          </Link>
-        </p>
+            <button
+              type="submit"
+              className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 font-semibold transition"
+            >
+              Entrar
+            </button>
+          </form>
+
+          <p className="text-xs text-gray-500 mt-4 text-center">
+            Ao se cadastrar, voce concorda com os <Link href="#" className="text-green-600 hover:underline">Termos de Servico</Link> do Freelamz.
+          </p>
+        </div>
       </div>
     </main>
   );

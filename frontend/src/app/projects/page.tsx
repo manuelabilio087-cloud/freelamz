@@ -23,10 +23,17 @@ export default function Projects() {
     fetch("http://localhost:5000/api/projects")
       .then((res) => res.json())
       .then((data) => {
-        setProjects(data);
+        if (Array.isArray(data)) {
+          setProjects(data);
+        } else {
+          setProjects([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setProjects([]);
+        setLoading(false);
+      });
   }, []);
 
   return (
@@ -45,7 +52,7 @@ export default function Projects() {
         ) : projects.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">Nenhum projeto ainda.</p>
-            <Link href="/projects/new" className="text-blue-600 hover:underline mt-2 inline-block">
+            <Link href="/projects/new" className="text-green-600 hover:underline mt-2 inline-block">
               Seja o primeiro a publicar!
             </Link>
           </div>
@@ -56,7 +63,7 @@ export default function Projects() {
                 <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
                 <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-blue-600 font-semibold">{project.budget} MZN</span>
+                  <span className="text-green-600 font-semibold">{project.budget} MZN</span>
                   <span className="text-gray-500 text-sm bg-gray-100 px-2 py-1 rounded">{project.category}</span>
                 </div>
                 <p className="text-sm text-gray-500">Por: {project.client_name}</p>
