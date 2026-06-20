@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers";
 
+const API_URL = "https://freelamz-production.up.railway.app/api";
+
 export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
@@ -18,7 +20,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
