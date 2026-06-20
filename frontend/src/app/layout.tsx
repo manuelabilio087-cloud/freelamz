@@ -6,15 +6,11 @@ import Providers from "@/providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Freelamz - Plataforma Freelance de Mocambique",
-  description: "Encontre freelancers ou ofereca os seus servicos",
+  title: "Freelamz",
+  description: "Plataforma freelance de Mocambique",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt">
       <body className={inter.className}>
