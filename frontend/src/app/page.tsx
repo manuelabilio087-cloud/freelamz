@@ -1,104 +1,88 @@
-"use client";
+﻿import Link from "next/link";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-
-export default function ClientDashboard() {
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
-    if (!token) {
-      window.location.href = "/login";
-      return;
-    }
-    setUser({ name: username || "Cliente", role: "client" });
-  }, []);
-
-  if (!user) return <div className="min-h-screen flex items-center justify-center">A carregar...</div>;
-
+export default function Home() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-50 to-green-50 py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <h1 className="text-3xl font-bold mb-2">Bem-vindo, {user.name}</h1>
-          <p className="text-gray-600 mb-8">Encontre os melhores freelancers para os seus projetos</p>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Card 1 */}
-            <Link href="/projects/new" className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition block">
-              <div className="text-3xl mb-3">➕</div>
-              <h3 className="font-bold mb-2">Publicar um novo projeto</h3>
-              <p className="text-gray-600 text-sm">Descreva o que precisa e receba propostas de freelancers qualificados</p>
-            </Link>
-            
-            {/* Card 2 */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-              <div className="text-3xl mb-3">📋</div>
-              <h3 className="font-bold mb-2">Meus projetos</h3>
-              <p className="text-gray-600 text-sm">Acompanhe o progresso dos seus projetos em andamento</p>
+    <main className="min-h-screen bg-white">
+      {/* Navbar */}
+      <nav className="flex items-center justify-between px-8 py-4 border-b">
+        <h1 className="text-2xl font-bold text-green-600">Freelamz</h1>
+        <div className="flex gap-4">
+          <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-green-600">Entrar</Link>
+          <Link href="/register" className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">Registar</Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="bg-gradient-to-r from-green-800 to-green-600 text-white py-24 px-8 text-center">
+        <h2 className="text-5xl font-bold mb-6">A plataforma freelance de Mocambique</h2>
+        <p className="text-xl mb-10 text-green-100">Encontre freelancers talentosos ou oferede os seus servicos</p>
+        <div className="flex gap-4 justify-center">
+          <Link href="/register" className="px-8 py-4 bg-white text-green-700 rounded-xl font-bold hover:bg-green-50 text-lg">
+            Comecar agora
+          </Link>
+          <Link href="/projects" className="px-8 py-4 border-2 border-white text-white rounded-xl font-bold hover:bg-green-700 text-lg">
+            Ver projetos
+          </Link>
+        </div>
+      </section>
+
+      {/* Categorias */}
+      <section className="py-16 px-8">
+        <h3 className="text-3xl font-bold text-center mb-12">Categorias populares</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+          {[
+            { icon: "💻", name: "Desenvolvimento Web" },
+            { icon: "🎨", name: "Design Grafico" },
+            { icon: "📱", name: "App Mobile" },
+            { icon: "📊", name: "Marketing Digital" },
+            { icon: "✍️", name: "Redacao" },
+            { icon: "🎵", name: "Audio e Musica" },
+            { icon: "📷", name: "Fotografia" },
+            { icon: "🌐", name: "Traducao" },
+          ].map((cat, i) => (
+            <div key={i} className="bg-gray-50 rounded-xl p-6 text-center hover:shadow-md transition cursor-pointer border hover:border-green-400">
+              <div className="text-4xl mb-3">{cat.icon}</div>
+              <p className="font-medium">{cat.name}</p>
             </div>
-            
-            {/* Card 3 */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition">
-              <div className="text-3xl mb-3">💬</div>
-              <h3 className="font-bold mb-2">Mensagens</h3>
-              <p className="text-gray-600 text-sm">Converse com freelancers sobre seus projetos</p>
-            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Como funciona */}
+      <section className="py-16 px-8 bg-gray-50">
+        <h3 className="text-3xl font-bold text-center mb-12">Como funciona</h3>
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="text-center">
+            <div className="text-5xl mb-4">📝</div>
+            <h4 className="text-xl font-bold mb-2">1. Publica o teu projeto</h4>
+            <p className="text-gray-600">Descreve o que precisas e define o teu orcamento</p>
+          </div>
+          <div className="text-center">
+            <div className="text-5xl mb-4">🤝</div>
+            <h4 className="text-xl font-bold mb-2">2. Recebe propostas</h4>
+            <p className="text-gray-600">Freelancers qualificados enviam as suas propostas</p>
+          </div>
+          <div className="text-center">
+            <div className="text-5xl mb-4">✅</div>
+            <h4 className="text-xl font-bold mb-2">3. Trabalho feito</h4>
+            <p className="text-gray-600">Colabora e paga so quando estiveres satisfeito</p>
           </div>
         </div>
       </section>
 
-      {/* Projetos Ativos */}
-      <section className="py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6">Projetos em andamento</h2>
-          
-          <div className="bg-white rounded-xl border p-8 text-center">
-            <div className="text-6xl mb-4">📁</div>
-            <h3 className="text-xl font-medium mb-2">Nenhum projeto ativo</h3>
-            <p className="text-gray-600 mb-4">Publique seu primeiro projeto e encontre freelancers talentosos</p>
-            <Link href="/projects/new" className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700">
-              Publicar Projeto
-            </Link>
-          </div>
-        </div>
+      {/* CTA */}
+      <section className="py-16 px-8 text-center bg-green-700 text-white">
+        <h3 className="text-3xl font-bold mb-4">Pronto para comecar?</h3>
+        <p className="text-green-100 mb-8 text-lg">Junta-te a milhares de freelancers e clientes em Mocambique</p>
+        <Link href="/register" className="px-8 py-4 bg-white text-green-700 rounded-xl font-bold hover:bg-green-50 text-lg">
+          Criar conta gratis
+        </Link>
       </section>
 
-      {/* Freelancers Recomendados */}
-      <section className="py-12 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6">Freelancers recomendados</h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { name: "João M.", skill: "Desenvolvimento Web", rating: 4.9, jobs: 127, image: "👨‍💻" },
-              { name: "Maria S.", skill: "Design Gráfico", rating: 4.8, jobs: 89, image: "👩‍🎨" },
-              { name: "Pedro A.", skill: "Marketing Digital", rating: 4.7, jobs: 56, image: "👨‍💼" },
-              { name: "Ana L.", skill: "Tradução", rating: 5.0, jobs: 203, image: "👩‍🏫" },
-            ].map((freelancer, i) => (
-              <div key={i} className="bg-white rounded-xl border p-6 hover:shadow-md transition">
-                <div className="text-4xl mb-3 text-center">{freelancer.image}</div>
-                <h3 className="font-bold text-center mb-1">{freelancer.name}</h3>
-                <p className="text-gray-600 text-sm text-center mb-3">{freelancer.skill}</p>
-                <div className="flex justify-center items-center gap-2 mb-3">
-                  <span className="text-yellow-500">★</span>
-                  <span className="font-medium">{freelancer.rating}</span>
-                  <span className="text-gray-400 text-sm">({freelancer.jobs} trabalhos)</span>
-                </div>
-                <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
-                  Ver Perfil
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Footer */}
+      <footer className="py-8 px-8 text-center text-gray-500 border-t">
+        <p>© 2024 Freelamz - Plataforma Freelance de Mocambique</p>
+      </footer>
     </main>
   );
 }
