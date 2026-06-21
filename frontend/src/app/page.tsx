@@ -2,112 +2,115 @@
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="flex items-center justify-between px-8 py-4 border-b shadow-sm sticky top-0 bg-white z-50">
-        <h1 className="text-2xl font-black text-green-600 tracking-tight">Freelamz</h1>
-        <div className="hidden md:flex items-center gap-2 flex-1 mx-8">
-          <div className="flex items-center w-full max-w-lg border-2 border-gray-200 rounded-lg px-4 py-2 hover:border-green-500 transition">
-            <span className="text-gray-400 mr-2">🔍</span>
-            <input type="text" placeholder="Pesquisar servicos..." className="outline-none w-full text-sm" />
-            <button className="bg-green-600 text-white px-4 py-1 rounded-md text-sm font-medium ml-2">Buscar</button>
+    <main className="min-h-screen bg-white font-sans">
+
+      {/* NAVBAR */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100 shadow-sm" style={{height:"80px"}}>
+        <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <button className="flex flex-col gap-1 p-2">
+              <span className="w-5 h-0.5 bg-gray-700"></span>
+              <span className="w-5 h-0.5 bg-gray-700"></span>
+              <span className="w-5 h-0.5 bg-gray-700"></span>
+            </button>
+            <Link href="/" className="text-2xl font-black text-green-600">Freelamz</Link>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="px-4 py-2 text-gray-700 font-medium hover:text-green-600 transition">Entrar</Link>
-          <Link href="/register" className="px-5 py-2 bg-green-600 text-white rounded-md font-semibold hover:bg-green-700 transition">Registar</Link>
+          <div className="hidden md:flex items-center border border-gray-200 rounded-full px-4 py-2 shadow-sm w-80 bg-white">
+            <input type="text" placeholder="Que tipo de servico voce procura?" className="outline-none text-sm flex-1 text-gray-600" />
+            <button className="text-gray-500 hover:text-green-600">🔍</button>
+          </div>
+          <div className="hidden md:flex items-center gap-6 text-sm text-gray-700 font-medium">
+            <button className="hover:text-green-600">Explorar ▼</button>
+            <button className="hover:text-green-600">Categorias ▼</button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Link href="/register?role=freelancer" className="text-sm text-gray-700 hover:text-green-600 hidden md:block">Torne-se Freelancer</Link>
+            <Link href="/login" className="text-sm text-gray-700 font-medium px-4 py-2 hover:text-green-600">Entrar</Link>
+            <Link href="/register" className="text-sm bg-green-600 text-white px-5 py-2 rounded-full font-semibold hover:bg-green-700 transition hover:scale-105">Cadastrar-se</Link>
+          </div>
         </div>
       </nav>
 
-      {/* Hero com imagem de fundo */}
-      <section className="relative text-white py-32 px-8 overflow-hidden" style={{minHeight: "520px"}}>
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-800 to-transparent z-10"></div>
+      {/* HERO */}
+      <section className="relative flex items-center" style={{height:"100vh", marginTop:"0"}}>
         <div className="absolute inset-0" style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1400&q=80')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80')",
           backgroundSize: "cover",
           backgroundPosition: "center"
         }}></div>
-        <div className="max-w-2xl relative z-20">
-          <h2 className="text-5xl md:text-6xl font-black mb-6 leading-tight">
-            Encontra o talento <br/>
-            <span className="text-green-400">certo para o teu negocio</span>
-          </h2>
-          <p className="text-xl mb-8 text-gray-300">
-            Milhares de freelancers qualificados em Mocambique
-          </p>
-          <div className="flex items-center bg-white rounded-lg overflow-hidden shadow-xl max-w-lg">
-            <span className="px-4 text-gray-400">🔍</span>
-            <input type="text" placeholder="Pesquisar qualquer servico..." className="flex-1 py-4 outline-none text-gray-800" />
-            <button className="bg-green-600 text-white px-6 py-4 font-bold hover:bg-green-700 transition">Buscar</button>
+        <div className="absolute inset-0" style={{background: "rgba(0,0,0,0.45)"}}></div>
+        <div className="relative z-10 max-w-7xl mx-auto px-8 pt-20">
+          <h1 className="text-white font-light leading-tight mb-8" style={{fontSize:"82px", fontWeight:"300", maxWidth:"700px"}}>
+            Nossos freelancers darao continuidade ao seu trabalho.
+          </h1>
+          <div className="flex items-center bg-white rounded-xl overflow-hidden shadow-2xl" style={{maxWidth:"900px", height:"70px"}}>
+            <span className="px-5 text-gray-400 text-xl">🔍</span>
+            <input type="text" placeholder="Pesquise qualquer servico..." className="flex-1 outline-none text-gray-800 text-lg" />
+            <button className="bg-black text-white px-8 h-full font-semibold text-lg hover:bg-gray-800 transition">Buscar</button>
           </div>
-          <div className="flex gap-4 mt-6 text-sm text-gray-300">
-            <span>Popular:</span>
-            {["Web Design", "Marketing", "Traducao", "Video"].map((tag, i) => (
-              <span key={i} className="border border-gray-400 px-3 py-1 rounded-full hover:border-white cursor-pointer transition">{tag}</span>
+          <div className="flex flex-wrap gap-3 mt-6">
+            {["Desenvolvimento de Websites →", "Design Grafico →", "Videos UGC →", "Edicao de Video →", "Marketing Digital →"].map((tag, i) => (
+              <button key={i} className="border border-white text-white text-sm px-4 py-2 rounded-full hover:bg-white hover:text-gray-900 transition">
+                {tag}
+              </button>
             ))}
           </div>
-        </div>
-        <div className="absolute bottom-6 right-8 z-20 flex gap-8 text-center">
-          <div><div className="text-2xl font-black">500+</div><div className="text-xs text-gray-300">Freelancers</div></div>
-          <div><div className="text-2xl font-black">1.2k+</div><div className="text-xs text-gray-300">Projectos</div></div>
-          <div><div className="text-2xl font-black">98%</div><div className="text-xs text-gray-300">Satisfacao</div></div>
+          <div className="flex gap-8 mt-12 text-white opacity-80">
+            <div className="text-sm">Aprovado por: <span className="font-bold ml-2">Meta · Google · Netflix · PayPal · Payoneer</span></div>
+          </div>
         </div>
       </section>
 
-      {/* Categorias */}
-      <section className="py-16 px-8 border-b">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex items-center gap-2 mb-8">
-            <h3 className="text-2xl font-black">Explorar categorias</h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* CATEGORIAS */}
+      <section className="py-20 px-8 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-black mb-10">Categorias Populares</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: "💻", name: "Desenvolvimento Web", color: "bg-blue-600" },
-              { icon: "🎨", name: "Design Grafico", color: "bg-pink-600" },
-              { icon: "📱", name: "App Mobile", color: "bg-purple-600" },
-              { icon: "📊", name: "Marketing Digital", color: "bg-orange-500" },
-              { icon: "✍️", name: "Redacao", color: "bg-yellow-600" },
-              { icon: "🎵", name: "Audio e Musica", color: "bg-red-600" },
-              { icon: "📷", name: "Fotografia", color: "bg-teal-600" },
-              { icon: "🌐", name: "Traducao", color: "bg-green-600" },
+              { icon: "💻", name: "Programacao e Tecnologia" },
+              { icon: "🎨", name: "Design Grafico" },
+              { icon: "📊", name: "Marketing Digital" },
+              { icon: "✍️", name: "Redacao e Traducao" },
+              { icon: "🎬", name: "Video e Animacao" },
+              { icon: "🤖", name: "Servicos de IA" },
+              { icon: "🎵", name: "Musica e Audio" },
+              { icon: "💼", name: "Negocios" },
             ].map((cat, i) => (
-              <div key={i} className={`${cat.color} rounded-xl p-6 text-white cursor-pointer hover:opacity-90 transition group`}>
-                <div className="text-4xl mb-3">{cat.icon}</div>
-                <p className="font-bold">{cat.name}</p>
+              <div key={i} className="bg-white border border-gray-100 rounded-2xl p-6 text-center cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300" style={{height:"180px"}}>
+                <div className="text-5xl mb-4">{cat.icon}</div>
+                <p className="font-semibold text-gray-800 text-sm">{cat.name}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Servicos populares */}
-      <section className="py-16 px-8">
-        <div className="max-w-6xl mx-auto">
-          <h3 className="text-2xl font-black mb-8">Servicos populares</h3>
+      {/* SERVICOS POPULARES */}
+      <section className="py-20 px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-black mb-10">Servicos Populares</h2>
           <div className="grid md:grid-cols-4 gap-6">
             {[
-              { title: "Vou criar o teu website profissional", name: "Joao M.", rating: "4.9", price: "2.500 MT", tag: "Desenvolvimento Web" },
-              { title: "Vou desenhar o teu logo em 24h", name: "Maria S.", rating: "5.0", price: "1.500 MT", tag: "Design Grafico" },
-              { title: "Vou gerir as tuas redes sociais", name: "Pedro A.", rating: "4.8", price: "3.000 MT", tag: "Marketing" },
-              { title: "Vou traduzir os teus documentos", name: "Ana L.", rating: "4.9", price: "800 MT", tag: "Traducao" },
-            ].map((service, i) => (
-              <div key={i} className="border rounded-xl overflow-hidden hover:shadow-lg transition cursor-pointer group">
-                <div className="h-40 bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center text-5xl group-hover:scale-105 transition">
-                  {["💻", "🎨", "📱", "🌐"][i]}
+              { title: "Vou criar o teu website profissional", name: "Joao M.", rating: "4.9", reviews: "127", price: "2.500 MT", icon: "💻" },
+              { title: "Vou desenhar o teu logo em 24h", name: "Maria S.", rating: "5.0", reviews: "89", price: "1.500 MT", icon: "🎨" },
+              { title: "Vou gerir as tuas redes sociais", name: "Pedro A.", rating: "4.8", reviews: "56", price: "3.000 MT", icon: "📱" },
+              { title: "Vou traduzir os teus documentos", name: "Ana L.", rating: "4.9", reviews: "203", price: "800 MT", icon: "🌐" },
+            ].map((s, i) => (
+              <div key={i} className="bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                <div className="h-44 bg-gradient-to-br from-green-400 to-green-700 flex items-center justify-center text-6xl group-hover:scale-105 transition-transform duration-300">
+                  {s.icon}
                 </div>
                 <div className="p-4">
-                  <span className="text-xs text-green-600 font-medium">{service.tag}</span>
-                  <p className="font-semibold text-gray-800 mt-1 mb-3 line-clamp-2">{service.title}</p>
+                  <p className="font-semibold text-gray-800 mb-3 text-sm leading-snug">{s.title}</p>
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      {service.name[0]}
-                    </div>
-                    <span className="text-sm text-gray-600">{service.name}</span>
-                    <span className="text-yellow-500 text-xs">⭐ {service.rating}</span>
+                    <div className="w-7 h-7 bg-green-600 rounded-full flex items-center justify-center text-white text-xs font-black">{s.name[0]}</div>
+                    <span className="text-sm text-gray-600 font-medium">{s.name}</span>
+                    <span className="text-yellow-500 text-xs">⭐ {s.rating}</span>
+                    <span className="text-gray-400 text-xs">({s.reviews})</span>
                   </div>
                   <div className="border-t pt-3 flex justify-between items-center">
-                    <span className="text-xs text-gray-500">A partir de</span>
-                    <span className="font-black text-gray-800">{service.price}</span>
+                    <span className="text-xs text-gray-400">A partir de</span>
+                    <span className="font-black text-gray-900">{s.price}</span>
                   </div>
                 </div>
               </div>
@@ -116,33 +119,96 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-20 px-8 bg-green-700 text-white text-center">
-        <h3 className="text-4xl font-black mb-4">Pronto para comecar?</h3>
-        <p className="text-green-100 mb-10 text-lg">Junta-te a comunidade Freelamz hoje mesmo</p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Link href="/register" className="px-8 py-4 bg-white text-green-700 rounded-md font-bold hover:bg-green-50 text-lg shadow-lg">
-            Criar conta gratis
-          </Link>
-          <Link href="/projects" className="px-8 py-4 border-2 border-white text-white rounded-md font-bold hover:bg-green-600 text-lg">
-            Ver projectos
-          </Link>
+      {/* SECAO IA */}
+      <section className="py-20 px-8" style={{background:"#F5F7FA"}}>
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-black mb-3">Descubra o poder da Inteligencia Artificial</h2>
+          <p className="text-gray-500 mb-10">Freelancers especializados em IA para o teu negocio</p>
+          <div className="flex gap-4 flex-wrap">
+            {["🤖 Criacao de conteudo", "💬 Chatbots", "⚡ Automacoes", "🧠 Desenvolvimento IA", "🎨 Design com IA"].map((item, i) => (
+              <div key={i} className="bg-white rounded-xl px-6 py-4 shadow-sm hover:shadow-md transition cursor-pointer font-medium text-gray-700 border border-gray-100">
+                {item}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-10 px-8 bg-gray-900 text-gray-400">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 className="text-xl font-black text-white mb-1">Freelamz</h2>
-            <p className="text-sm">A plataforma freelance de Mocambique 🇲🇿</p>
+      {/* PARA FREELANCERS */}
+      <section className="py-20 px-8 bg-white">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1">
+            <h2 className="text-4xl font-black mb-4">Transforme a sua habilidade em renda.</h2>
+            <p className="text-gray-500 mb-8 text-lg">Junta-te a milhares de freelancers em Mocambique e começa a ganhar dinheiro com o que sabes fazer.</p>
+            <Link href="/register?role=freelancer" className="bg-green-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-700 transition inline-block">
+              Comecar a vender
+            </Link>
           </div>
-          <div className="flex gap-6 text-sm">
-            <Link href="/login" className="hover:text-white transition">Entrar</Link>
-            <Link href="/register" className="hover:text-white transition">Registar</Link>
-            <Link href="/projects" className="hover:text-white transition">Projectos</Link>
+          <div className="flex-1 bg-gradient-to-br from-green-100 to-green-200 rounded-3xl h-64 flex items-center justify-center text-8xl">
+            🚀
           </div>
-          <p className="text-sm">© 2024 Freelamz</p>
+        </div>
+      </section>
+
+      {/* DEPOIMENTOS */}
+      <section className="py-20 px-8 bg-gray-50">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-black mb-10 text-center">O que os nossos clientes dizem</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { name: "Carlos M.", company: "TechMoz", comment: "Encontrei um desenvolvedor excelente em menos de 24h. Servico de qualidade e preco justo!", rating: "5" },
+              { name: "Fatima A.", company: "DesignPlus", comment: "A plataforma e muito facil de usar. Ja contratei 3 freelancers e todos entregaram no prazo.", rating: "5" },
+              { name: "Manuel J.", company: "StartupMZ", comment: "O melhor lugar para encontrar talento mocambicano. Recomendo a todos os empresarios!", rating: "5" },
+            ].map((dep, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div className="text-yellow-400 mb-4">{"⭐".repeat(5)}</div>
+                <p className="text-gray-700 mb-6 italic">"{dep.comment}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-black">{dep.name[0]}</div>
+                  <div>
+                    <p className="font-bold text-sm">{dep.name}</p>
+                    <p className="text-gray-400 text-xs">{dep.company}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="py-16 px-8" style={{background:"#111111"}}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-5 gap-8 mb-12">
+            <div className="md:col-span-1">
+              <h2 className="text-2xl font-black text-white mb-3">Freelamz</h2>
+              <p className="text-gray-400 text-sm">A plataforma freelance de Mocambique 🇲🇿</p>
+            </div>
+            {[
+              { title: "Categorias", links: ["Web Design", "Marketing", "Video", "Traducao"] },
+              { title: "Sobre", links: ["Quem somos", "Carreiras", "Blog", "Imprensa"] },
+              { title: "Suporte", links: ["Centro de ajuda", "Seguranca", "Termos", "Privacidade"] },
+              { title: "Comunidade", links: ["Forum", "Eventos", "Podcast", "Instagram"] },
+            ].map((col, i) => (
+              <div key={i}>
+                <h3 className="text-white font-bold mb-4">{col.title}</h3>
+                <ul className="space-y-2">
+                  {col.links.map((link, j) => (
+                    <li key={j}><a href="#" className="text-gray-400 text-sm hover:text-white transition">{link}</a></li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-500 text-sm">© 2026 Freelamz. Todos os direitos reservados.</p>
+            <div className="flex gap-4 text-gray-400">
+              <a href="#" className="hover:text-white transition">Facebook</a>
+              <a href="#" className="hover:text-white transition">Instagram</a>
+              <a href="#" className="hover:text-white transition">LinkedIn</a>
+              <a href="#" className="hover:text-white transition">X</a>
+            </div>
+          </div>
         </div>
       </footer>
     </main>
