@@ -6,7 +6,6 @@ const API_URL = "https://freelamz-production.up.railway.app/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -14,7 +13,6 @@ export default function ForgotPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setMessage("");
     setLoading(true);
 
     try {
@@ -32,9 +30,7 @@ export default function ForgotPassword() {
         return;
       }
 
-      // Mensagem generica de seguranca — nao revela se email existe
       setSent(true);
-      setMessage("Se este email estiver registado, enviaremos as instrucoes de recuperacao. Verifique a sua caixa de entrada.");
     } catch (err) {
       setError("Erro de conexao com o servidor");
     } finally {
@@ -91,11 +87,11 @@ export default function ForgotPassword() {
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>📧</div>
             <h2 style={{ fontSize: "20px", fontWeight: "700", color: "#404145", marginBottom: "12px" }}>Verifique o seu email</h2>
             <p style={{ color: "#74767e", fontSize: "14px", lineHeight: "1.6", marginBottom: "24px" }}>
-              {message}
+              Se este email estiver registado, enviaremos as instrucoes de recuperacao. Verifique a sua caixa de entrada e a pasta de spam.
             </p>
-            <p style={{ fontSize: "12px", color: "#74767e", marginBottom: "16px" }}>
-              Nao recebeu? Verifique a pasta de spam ou <button onClick={() => {setSent(false); setMessage("");}} style={{ background: "none", border: "none", color: "#1dbf73", cursor: "pointer", fontWeight: "600" }}>tentar novamente</button>.
-            </p>
+            <button onClick={() => {setSent(false); setEmail("");}} style={{ background: "none", border: "none", color: "#1dbf73", cursor: "pointer", fontWeight: "600" }}>
+              Tentar com outro email
+            </button>
           </div>
         )}
 

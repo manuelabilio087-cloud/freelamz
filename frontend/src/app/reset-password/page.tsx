@@ -1,18 +1,24 @@
 ﻿"use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
 export default function ResetPassword() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const t = searchParams.get("token");
+    if (t) setToken(t);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,62 +74,60 @@ export default function ResetPassword() {
       <div className="card">
         <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "8px" }}>Redefinir senha</h1>
         <p style={{ color: "#74767e", fontSize: "14px", marginBottom: "32px" }}>
-          Insira o token recebido e a nova senha.
+          {token ? "Insira a sua nova senha." : "Link invalido ou expirado."}
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div>
-            <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Token de recuperacao</label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="Cole o token aqui"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nova senha</label>
-            <input
-              type="password"
-              className="input-field"
-              placeholder="********"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Confirmar nova senha</label>
-            <input
-              type="password"
-              className="input-field"
-              placeholder="********"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          {error && (
-            <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
-              {error}
+        {token ? (
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nova senha</label>
+              <input
+                type="password"
+                className="input-field"
+                placeholder="********"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                required
+              />
             </div>
-          )}
 
-          {message && (
-            <div style={{ background: "#f0fdf4", border: "1px solid #86efac", color: "#166534", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
-              {message}
+            <div>
+              <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Confirmar nova senha</label>
+              <input
+                type="password"
+                className="input-field"
+                placeholder="********"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+              />
             </div>
-          )}
 
-          <button type="submit" className="btn-green" disabled={loading}>
-            {loading ? "A redefinir..." : "Redefinir senha"}
-          </button>
-        </form>
+            {error && (
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
+                {error}
+              </div>
+            )}
+
+            {message && (
+              <div style={{ background: "#f0fdf4", border: "1px solid #86efac", color: "#166534", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
+                {message}
+              </div>
+            )}
+
+            <button type="submit" className="btn-green" disabled={loading}>
+              {loading ? "A redefinir..." : "Redefinir senha"}
+            </button>
+          </form>
+        ) : (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>❌</div>
+            <p style={{ color: "#74767e", fontSize: "14px" }}>O link de recuperacao e invalido ou expirou.</p>
+            <Link href="/forgot-password" style={{ display: "inline-block", marginTop: "16px", color: "#1dbf73", fontWeight: "600", textDecoration: "none" }}>
+              Solicitar novo link →
+            </Link>
+          </div>
+        )}
 
         <p style={{ textAlign: "center", marginTop: "24px", fontSize: "14px", color: "#74767e" }}>
           <Link href="/login" style={{ color: "#1dbf73", fontWeight: "600", textDecoration: "none" }}>Voltar ao login</Link>

@@ -1,8 +1,11 @@
 ﻿const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { Resend } = require('resend');
 const pool = require('../config/db');
 require('dotenv').config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const register = async (req, res) => {
   const { name, email, password, role } = req.body;
@@ -66,24 +69,48 @@ const forgotPassword = async (req, res) => {
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     
-    if (user.rows.length > 0) {
-      // Só gera token se o email existir
-      const token = crypto.randomBytes(32).toString('hex');
-      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-
-      await pool.query(
-        'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
-        [email, token, expiresAt]
-      );
-
-      // No MVP, logamos no console (depois integra email)
-      console.log(`Token de recuperacao para ${email}: ${token}`);
+    if (user.rows.length === 0) {
+      return res.json({ 
+        message: 'Se este email estiver registado, enviaremos as instrucoes de recuperacao.'
+      });
     }
 
-    // SEMPRE retorna a mesma mensagem — nunca revela se o email existe
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await pool.query(
+      'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
+      [email, token, expiresAt]
+    );
+
+    const resetUrl = `https://freelamz-frontend.vercel.app/reset-password?token=${token}`;
+
+    try {
+      await resend.emails.send({
+        from: 'Freelamz <onboarding@resend.dev>',
+        to: email,
+        subject: 'Recuperacao de senha - Freelamz',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: #1dbf73;">Recuperacao de senha</h2>
+            <p>Ola,</p>
+            <p>Recebemos um pedido para redefinir a senha da sua conta Freelamz.</p>
+            <p>Clique no botao abaixo para redefinir a sua senha:</p>
+            <a href="${resetUrl}" style="display: inline-block; background: #1dbf73; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0;">Redefinir senha</a>
+            <p style="margin-top: 24px; font-size: 13px; color: #74767e;">Este link expira em 1 hora. Se nao solicitou esta recuperacao, ignore este email.</p>
+            <p style="font-size: 12px; color: #74767e;">Se o botao nao funcionar, copie este link: ${resetUrl}</p>
+            <hr style="border: none; border-top: 1px solid #e4e5e7; margin: 24px 0;">
+            <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+          </div>
+        `
+      });
+      console.log(`Email enviado para ${email}`);
+    } catch (emailErr) {
+      console.error('Erro ao enviar email:', emailErr);
+    }
+
     res.json({ 
-      message: 'Se este email estiver registado, enviaremos as instrucoes de recuperacao.',
-      success: true 
+      message: 'Se este email estiver registado, enviaremos as instrucoes de recuperacao.'
     });
   } catch (err) {
     console.error('Erro no forgot password:', err);
