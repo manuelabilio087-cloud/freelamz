@@ -1,6 +1,4 @@
-﻿@tailwind base;
-@tailwind components;
-@tailwind utilities;
+﻿@import "tailwindcss";
 
 :root {
   color-scheme: light !important;
@@ -19,8 +17,4 @@ input, select, textarea {
 input::placeholder, textarea::placeholder {
   color: #74767e !important;
   opacity: 1 !important;
-}
-
-h1, h2, h3, h4, h5, h6, p, span, label, div {
-  color: inherit;
 }
