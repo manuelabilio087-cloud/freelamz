@@ -32,6 +32,7 @@ export default function Register() {
 
       if (!res.ok) {
         setError(data.message || "Erro ao registar");
+        setLoading(false);
         return;
       }
 
@@ -45,90 +46,105 @@ export default function Register() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-4xl w-full flex">
-        <div className="hidden md:flex w-1/2 bg-green-700 items-center justify-center p-8">
-          <div className="text-white">
-            <h2 className="text-3xl font-bold mb-4">O sucesso comeca aqui.</h2>
-            <ul className="space-y-3 text-lg">
-              <li>✓ Mais de 700 categorias</li>
-              <li>✓ Trabalho de qualidade feito mais rapido</li>
-              <li>✓ Acesso a talentos em todo Mocambique</li>
+    <div style={{ minHeight: "100vh", background: "#f7f7f7", fontFamily: "Inter, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+      <style>{`
+        .input-field { width: 100%; padding: 14px 16px; border: 1px solid #c5c6c9; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; background: #fff; color: #404145; }
+        .input-field:focus { border-color: #1dbf73; }
+        select.input-field { appearance: auto; }
+        .btn-green { width: 100%; background: #1dbf73; color: #fff; padding: 14px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; }
+        .btn-green:hover { background: #19a463; }
+        .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
+        .card { background: #fff; border: 1px solid #e4e5e7; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
+      `}</style>
+
+      <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
+        <div className="layout" style={{ display: "flex", minHeight: "600px" }}>
+          {/* Lado esquerdo */}
+          <div className="side" style={{ flex: 1, background: "linear-gradient(135deg, #1dbf73, #0a8c55)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "24px" }}>O sucesso comeca aqui.</h2>
+            <ul style={{ display: "flex", flexDirection: "column", gap: "16px", fontSize: "18px", listStyle: "none", padding: 0 }}>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px" }}>✓</span> Mais de 700 categorias
+              </li>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px" }}>✓</span> Trabalho de qualidade feito mais rapido
+              </li>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px" }}>✓</span> Acesso a talentos em todo Mocambique
+              </li>
             </ul>
           </div>
-        </div>
 
-        <div className="w-full md:w-1/2 p-8 md:p-12">
-          <h1 className="text-2xl font-bold mb-2">Crie a sua conta.</h1>
-          <p className="text-gray-600 mb-6">
-            Ja tem uma conta? <Link href="/login" className="text-green-600 hover:underline font-medium">Entre aqui.</Link>
-          </p>
+          {/* Lado direito */}
+          <div style={{ flex: 1, padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "8px" }}>Crie a sua conta.</h1>
+            <p style={{ color: "#74767e", fontSize: "14px", marginBottom: "32px" }}>
+              Ja tem uma conta? <Link href="/login" style={{ color: "#1dbf73", fontWeight: "600", textDecoration: "none" }}>Entre aqui.</Link>
+            </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
-                placeholder="O seu nome"
-                required
-              />
-            </div>
+            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nome completo</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="O seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
-                placeholder="seu@email.com"
-                required
-              />
-            </div>
+              <div>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Email</label>
+                <input
+                  type="email"
+                  className="input-field"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
-                placeholder="********"
-                required
-              />
-            </div>
+              <div>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Senha</label>
+                <input
+                  type="password"
+                  className="input-field"
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de conta</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:border-green-500"
-              >
-                <option value="freelancer">Freelancer</option>
-                <option value="client">Cliente</option>
-              </select>
-            </div>
+              <div>
+                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Tipo de conta</label>
+                <select
+                  className="input-field"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                >
+                  <option value="freelancer">Freelancer</option>
+                  <option value="client">Cliente</option>
+                </select>
+              </div>
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && (
+                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
+                  {error}
+                </div>
+              )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition disabled:opacity-50"
-            >
-              {loading ? "A registar..." : "Criar conta"}
-            </button>
-          </form>
-
-          <p className="text-xs text-gray-500 mt-4 text-center">
-            Ao se cadastrar, voce concorda com os Termos de Servico do Freelamz.
-          </p>
+              <button type="submit" className="btn-green" disabled={loading}>
+                {loading ? "A registar..." : "Criar conta"}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
