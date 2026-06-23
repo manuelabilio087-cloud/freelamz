@@ -57,13 +57,11 @@ export default function Login() {
 
       <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
         <div className="layout" style={{ display: "flex", minHeight: "560px" }}>
-          {/* Lado esquerdo */}
           <div className="side" style={{ flex: 1, background: "linear-gradient(135deg, #1dbf73, #0a8c55)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px" }}>
             <h2 style={{ fontSize: "36px", fontWeight: "700", marginBottom: "16px" }}>Bem-vindo de volta!</h2>
             <p style={{ fontSize: "18px", opacity: 0.9, lineHeight: "1.6" }}>Entre na sua conta para continuar a encontrar os melhores freelancers de Mocambique.</p>
           </div>
 
-          {/* Lado direito */}
           <div style={{ flex: 1, padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "8px" }}>Entrar</h1>
             <p style={{ color: "#74767e", fontSize: "14px", marginBottom: "32px" }}>
@@ -73,26 +71,16 @@ export default function Login() {
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Email</label>
-                <input
-                  type="email"
-                  className="input-field"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <input type="email" className="input-field" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
 
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Senha</label>
-                <input
-                  type="password"
-                  className="input-field"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <input type="password" className="input-field" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <Link href="/forgot-password" style={{ color: "#1dbf73", fontSize: "13px", fontWeight: "500", textDecoration: "none" }}>Esqueci a senha?</Link>
               </div>
 
               {error && (
