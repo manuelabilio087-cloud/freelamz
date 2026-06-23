@@ -32,3 +32,5 @@ app.listen(PORT, async () => {
   console.log('Servidor a correr na porta ' + PORT);
   await createTables();
 });
+
+
