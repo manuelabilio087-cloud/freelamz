@@ -1,11 +1,11 @@
 ﻿"use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [token, setToken] = useState("");
@@ -134,5 +134,13 @@ export default function ResetPassword() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Carregando...</div>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
