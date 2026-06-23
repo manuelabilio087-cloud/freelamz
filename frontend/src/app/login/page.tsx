@@ -35,7 +35,7 @@ export default function Login() {
       }
 
       login(data.token, data.user);
-      router.push("/welcome");
+      router.push("/");
     } catch (err) {
       setError("Erro de conexao com o servidor");
     } finally {
@@ -54,6 +54,9 @@ export default function Login() {
         .card { background: #fff; border: 1px solid #e4e5e7; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
       `}</style>
+
+      {/* Seta voltar */}
+      <Link href="/" style={{ position: "absolute", top: "24px", left: "24px", color: "#404145", textDecoration: "none", fontSize: "28px", zIndex: 10 }}>←</Link>
 
       <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
         <div className="layout" style={{ display: "flex", minHeight: "560px" }}>

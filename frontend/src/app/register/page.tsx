@@ -37,7 +37,7 @@ export default function Register() {
       }
 
       login(data.token, data.user);
-      router.push("/welcome");
+      router.push("/");
     } catch (err) {
       setError("Erro de conexao com o servidor");
     } finally {
@@ -58,9 +58,11 @@ export default function Register() {
         @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
       `}</style>
 
+      {/* Seta voltar */}
+      <Link href="/" style={{ position: "absolute", top: "24px", left: "24px", color: "#404145", textDecoration: "none", fontSize: "28px", zIndex: 10 }}>←</Link>
+
       <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
         <div className="layout" style={{ display: "flex", minHeight: "600px" }}>
-          {/* Lado esquerdo */}
           <div className="side" style={{ flex: 1, background: "linear-gradient(135deg, #1dbf73, #0a8c55)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px" }}>
             <h2 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "24px" }}>O sucesso comeca aqui.</h2>
             <ul style={{ display: "flex", flexDirection: "column", gap: "16px", fontSize: "18px", listStyle: "none", padding: 0 }}>
@@ -76,7 +78,6 @@ export default function Register() {
             </ul>
           </div>
 
-          {/* Lado direito */}
           <div style={{ flex: 1, padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
             <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "8px" }}>Crie a sua conta.</h1>
             <p style={{ color: "#74767e", fontSize: "14px", marginBottom: "32px" }}>
@@ -86,47 +87,22 @@ export default function Register() {
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nome completo</label>
-                <input
-                  type="text"
-                  className="input-field"
-                  placeholder="O seu nome"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
+                <input type="text" className="input-field" placeholder="O seu nome" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
 
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Email</label>
-                <input
-                  type="email"
-                  className="input-field"
-                  placeholder="seu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <input type="email" className="input-field" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
 
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Senha</label>
-                <input
-                  type="password"
-                  className="input-field"
-                  placeholder="********"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <input type="password" className="input-field" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
               </div>
 
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Tipo de conta</label>
-                <select
-                  className="input-field"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
+                <select className="input-field" value={role} onChange={(e) => setRole(e.target.value)}>
                   <option value="freelancer">Freelancer</option>
                   <option value="client">Cliente</option>
                 </select>
@@ -148,4 +124,3 @@ export default function Register() {
     </div>
   );
 }
-
