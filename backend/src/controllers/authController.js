@@ -65,20 +65,26 @@ const forgotPassword = async (req, res) => {
 
   try {
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length === 0) {
-      return res.status(400).json({ message: 'Email nao encontrado.' });
+    
+    if (user.rows.length > 0) {
+      // Só gera token se o email existir
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+      await pool.query(
+        'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
+        [email, token, expiresAt]
+      );
+
+      // No MVP, logamos no console (depois integra email)
+      console.log(`Token de recuperacao para ${email}: ${token}`);
     }
 
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
-
-    await pool.query(
-      'INSERT INTO password_resets (email, token, expires_at) VALUES ($1, $2, $3)',
-      [email, token, expiresAt]
-    );
-
-    // No MVP, retornamos o token para o frontend mostrar (depois integra email)
-    res.json({ message: 'Token gerado. Use-o para redefinir a senha.', token });
+    // SEMPRE retorna a mesma mensagem — nunca revela se o email existe
+    res.json({ 
+      message: 'Se este email estiver registado, enviaremos as instrucoes de recuperacao.',
+      success: true 
+    });
   } catch (err) {
     console.error('Erro no forgot password:', err);
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
