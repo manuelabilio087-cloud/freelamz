@@ -12,7 +12,6 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("freelancer");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +24,7 @@ export default function Register() {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role: "freelancer" }),
       });
 
       const data = await res.json();
@@ -37,7 +36,7 @@ export default function Register() {
       }
 
       login(data.token, data.user);
-      router.push("/");
+      router.push("/welcome");
     } catch (err) {
       setError("Erro de conexao com o servidor");
     } finally {
@@ -50,7 +49,6 @@ export default function Register() {
       <style>{`
         .input-field { width: 100%; padding: 14px 16px; border: 1px solid #c5c6c9; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; background: #fff; color: #404145; }
         .input-field:focus { border-color: #1dbf73; }
-        select.input-field { appearance: auto; }
         .btn-green { width: 100%; background: #1dbf73; color: #fff; padding: 14px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; }
         .btn-green:hover { background: #19a463; }
         .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -58,23 +56,16 @@ export default function Register() {
         @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
       `}</style>
 
-      {/* Seta voltar */}
       <Link href="/" style={{ position: "absolute", top: "24px", left: "24px", color: "#404145", textDecoration: "none", fontSize: "28px", zIndex: 10 }}>←</Link>
 
       <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
-        <div className="layout" style={{ display: "flex", minHeight: "600px" }}>
+        <div className="layout" style={{ display: "flex", minHeight: "560px" }}>
           <div className="side" style={{ flex: 1, background: "linear-gradient(135deg, #1dbf73, #0a8c55)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px" }}>
             <h2 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "24px" }}>O sucesso comeca aqui.</h2>
             <ul style={{ display: "flex", flexDirection: "column", gap: "16px", fontSize: "18px", listStyle: "none", padding: 0 }}>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>✓</span> Mais de 700 categorias
-              </li>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>✓</span> Trabalho de qualidade feito mais rapido
-              </li>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px" }}>✓</span> Acesso a talentos em todo Mocambique
-              </li>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Mais de 700 categorias</li>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Trabalho de qualidade feito mais rapido</li>
+              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Acesso a talentos em todo Mocambique</li>
             </ul>
           </div>
 
@@ -89,23 +80,13 @@ export default function Register() {
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nome completo</label>
                 <input type="text" className="input-field" placeholder="O seu nome" value={name} onChange={(e) => setName(e.target.value)} required />
               </div>
-
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Email</label>
                 <input type="email" className="input-field" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
-
               <div>
                 <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Senha</label>
                 <input type="password" className="input-field" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Tipo de conta</label>
-                <select className="input-field" value={role} onChange={(e) => setRole(e.target.value)}>
-                  <option value="freelancer">Freelancer</option>
-                  <option value="client">Cliente</option>
-                </select>
               </div>
 
               {error && (

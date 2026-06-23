@@ -35,7 +35,13 @@ export default function Login() {
       }
 
       login(data.token, data.user);
-      router.push("/");
+
+      // Redireciona conforme o tipo de conta
+      if (data.user.role === "client") {
+        router.push("/client-dashboard");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err) {
       setError("Erro de conexao com o servidor");
     } finally {
@@ -55,7 +61,6 @@ export default function Login() {
         @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
       `}</style>
 
-      {/* Seta voltar */}
       <Link href="/" style={{ position: "absolute", top: "24px", left: "24px", color: "#404145", textDecoration: "none", fontSize: "28px", zIndex: 10 }}>←</Link>
 
       <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
