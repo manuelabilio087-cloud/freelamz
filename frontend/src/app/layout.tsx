@@ -13,6 +13,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt">
+      <head>
+        <style>{`
+          :root { color-scheme: light; }
+          html, body { background-color: #ffffff; color: #404145; }
+          input, select, textarea { color: #404145; background-color: #ffffff; }
+          input::placeholder, textarea::placeholder { color: #74767e; opacity: 1; }
+        `}</style>
+      </head>
       <body className={inter.className}>
         <Providers>{children}</Providers>
       </body>
