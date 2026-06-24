@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
+const IconBriefcase = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>;
+const IconMessage = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>;
+const IconStar = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const IconDollar = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
+const IconSearch = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
+const IconUser = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+const IconPlus = () => <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+const IconRocket = () => <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="1.5"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>;
+
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -52,12 +61,11 @@ export default function Dashboard() {
         .welcome { background: linear-gradient(135deg, #1dbf73, #0fa85c); color: #fff; border-radius: 16px; padding: 32px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; }
         .welcome h1 { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
         .welcome p { font-size: 14px; opacity: 0.9; }
-        .welcome-emoji { font-size: 64px; }
         .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
         .stat-card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #e4e5e7; }
         .stat-value { font-size: 32px; font-weight: 700; color: #404145; margin-bottom: 4px; }
         .stat-label { font-size: 13px; color: #74767e; }
-        .stat-icon { font-size: 28px; margin-bottom: 12px; }
+        .stat-icon { margin-bottom: 12px; }
         .tabs { display: flex; gap: 0; border-bottom: 2px solid #e4e5e7; margin-bottom: 24px; }
         .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #74767e; background: none; border-top: none; border-left: none; border-right: none; }
         .tab.active { color: #1dbf73; border-bottom-color: #1dbf73; }
@@ -77,11 +85,10 @@ export default function Dashboard() {
         .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
         .action-card { background: #fff; border: 1px solid #e4e5e7; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; text-align: center; }
         .action-card:hover { border-color: #1dbf73; box-shadow: 0 4px 12px rgba(29,191,115,0.15); }
-        .action-icon { font-size: 32px; margin-bottom: 10px; }
+        .action-icon { margin-bottom: 10px; display: flex; justify-content: center; }
         .action-title { font-weight: 600; font-size: 14px; color: #404145; }
         .action-desc { font-size: 12px; color: #74767e; margin-top: 4px; }
         .empty { text-align: center; padding: 48px; color: #74767e; background: #fff; border-radius: 12px; border: 1px solid #e4e5e7; }
-        .empty-icon { font-size: 48px; margin-bottom: 12px; }
         .profile-card { background: #fff; border-radius: 12px; border: 1px solid #e4e5e7; padding: 32px; text-align: center; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: #1dbf73; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 32px; font-weight: 700; margin: 0 auto 16px; }
         .profile-name { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -94,7 +101,6 @@ export default function Dashboard() {
           .navbar { padding: 0 16px; }
           .container { padding: 20px 16px; }
           .welcome { flex-direction: column; gap: 16px; text-align: center; }
-          .welcome-emoji { display: none; }
           .project-item { flex-direction: column; align-items: flex-start; }
         }
       `}</style>
@@ -104,7 +110,7 @@ export default function Dashboard() {
         <div className="nav-right">
           <Link href="/projects" style={{color:"#74767e"}}>Projectos</Link>
           <Link href="/messages" style={{color:"#74767e"}}>Mensagens</Link>
-          <button className="avatar-btn">{user?.name?.[0] || "U"}</button>
+          <button className="avatar-btn" onClick={() => router.push("/profile")}>{user?.name?.[0] || "U"}</button>
           <button className="btn-logout" onClick={logout}>Sair</button>
         </div>
       </nav>
@@ -115,27 +121,27 @@ export default function Dashboard() {
             <h1>Ola, {user?.name?.split(" ")[0] || "Freelancer"}! 👋</h1>
             <p>Bem-vindo ao teu painel. Encontra projectos e gere o teu trabalho.</p>
           </div>
-          <div className="welcome-emoji">🚀</div>
+          <IconRocket />
         </div>
 
         <div className="stats">
           <div className="stat-card">
-            <div className="stat-icon">📋</div>
+            <div className="stat-icon"><IconBriefcase /></div>
             <div className="stat-value">{projects.length}</div>
             <div className="stat-label">Projectos disponíveis</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">💬</div>
+            <div className="stat-icon"><IconMessage /></div>
             <div className="stat-value">0</div>
             <div className="stat-label">Mensagens novas</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">⭐</div>
+            <div className="stat-icon"><IconStar /></div>
             <div className="stat-value">—</div>
             <div className="stat-label">Avaliacao media</div>
           </div>
           <div className="stat-card">
-            <div className="stat-icon">💰</div>
+            <div className="stat-icon"><IconDollar /></div>
             <div className="stat-value">0 MT</div>
             <div className="stat-label">Ganhos totais</div>
           </div>
@@ -153,10 +159,10 @@ export default function Dashboard() {
           <>
             <div className="quick-actions">
               {[
-                {icon:"🔍", title:"Encontrar Projectos", desc:"Ver todos os projectos disponíveis", path:"/projects"},
-                {icon:"💬", title:"Mensagens", desc:"Ver as tuas conversas", path:"/messages"},
-                {icon:"👤", title:"Editar Perfil", desc:"Actualiza as tuas informacoes", path:"/profile"},
-                {icon:"➕", title:"Criar Servico", desc:"Publica o teu primeiro servico", path:"/create-gig"},
+                {icon:<IconSearch />, title:"Encontrar Projectos", desc:"Ver todos os projectos disponíveis", path:"/projects"},
+                {icon:<IconMessage />, title:"Mensagens", desc:"Ver as tuas conversas", path:"/messages"},
+                {icon:<IconUser />, title:"Editar Perfil", desc:"Actualiza as tuas informacoes", path:"/profile"},
+                {icon:<IconPlus />, title:"Criar Servico", desc:"Publica o teu primeiro servico", path:"/create-gig"},
               ].map((a, i) => (
                 <div key={i} className="action-card" onClick={() => router.push(a.path)}>
                   <div className="action-icon">{a.icon}</div>
@@ -172,10 +178,13 @@ export default function Dashboard() {
             </div>
             <div className="projects-list">
               {loading ? (
-                <div className="empty"><div className="empty-icon">⏳</div>A carregar...</div>
+                <div className="empty">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#74767e" strokeWidth="2" style={{margin:"0 auto 12px",display:"block"}}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  A carregar...
+                </div>
               ) : projects.slice(0, 3).length === 0 ? (
                 <div className="empty">
-                  <div className="empty-icon">📋</div>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e4e5e7" strokeWidth="1.5" style={{margin:"0 auto 12px",display:"block"}}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                   <p>Nenhum projecto disponível ainda.</p>
                 </div>
               ) : (
@@ -203,10 +212,10 @@ export default function Dashboard() {
             </div>
             <div className="projects-list">
               {loading ? (
-                <div className="empty"><div className="empty-icon">⏳</div>A carregar...</div>
+                <div className="empty">A carregar...</div>
               ) : projects.length === 0 ? (
                 <div className="empty">
-                  <div className="empty-icon">📋</div>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#e4e5e7" strokeWidth="1.5" style={{margin:"0 auto 12px",display:"block"}}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
                   <p>Nenhum projecto disponível.</p>
                 </div>
               ) : (
