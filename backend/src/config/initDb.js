@@ -1,73 +1,86 @@
-const pool = require('./db');
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
 
-const initDb = async () => {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        role VARCHAR(50) DEFAULT 'freelancer',
-        bio TEXT,
-        skills TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+const dbPath = path.join(__dirname, '../../database.sqlite');
+const db = new sqlite3.Database(dbPath);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS projects (
-        id SERIAL PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        description TEXT NOT NULL,
-        budget DECIMAL(10,2) NOT NULL,
-        category VARCHAR(100),
-        client_id INTEGER REFERENCES users(id),
-        status VARCHAR(50) DEFAULT 'open',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+db.serialize(() => {
+  // Tabela de users
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      role TEXT DEFAULT 'freelancer',
+      bio TEXT,
+      skills TEXT,
+      phone TEXT,
+      location TEXT DEFAULT 'Maputo, Mocambique',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS proposals (
-        id SERIAL PRIMARY KEY,
-        project_id INTEGER REFERENCES projects(id),
-        freelancer_id INTEGER REFERENCES users(id),
-        cover_letter TEXT,
-        price DECIMAL(10,2),
-        status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  // Tabela de projetos (com deadline e image_url)
+  db.run(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      budget INTEGER,
+      category TEXT,
+      deadline TEXT,
+      image_url TEXT,
+      client_id INTEGER,
+      status TEXT DEFAULT 'open',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (client_id) REFERENCES users(id)
+    )
+  `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS messages (
-        id SERIAL PRIMARY KEY,
-        sender_id INTEGER REFERENCES users(id),
-        receiver_id INTEGER REFERENCES users(id),
-        content TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  // Tabela de propostas
+  db.run(`
+    CREATE TABLE IF NOT EXISTS proposals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER,
+      freelancer_id INTEGER,
+      cover_letter TEXT,
+      price INTEGER,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id),
+      FOREIGN KEY (freelancer_id) REFERENCES users(id)
+    )
+  `);
 
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS reviews (
-        id SERIAL PRIMARY KEY,
-        project_id INTEGER REFERENCES projects(id),
-        reviewer_id INTEGER REFERENCES users(id),
-        reviewee_id INTEGER REFERENCES users(id),
-        rating INTEGER CHECK (rating >= 1 AND rating <= 5),
-        comment TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+  // Tabela de reset de senha
+  db.run(`
+    CREATE TABLE IF NOT EXISTS password_resets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL,
+      token TEXT NOT NULL,
+      expires_at DATETIME NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 
-    console.log('Tabelas criadas com sucesso!');
-    process.exit(0);
-  } catch (err) {
-    console.error('Erro ao criar tabelas:', err);
-    process.exit(1);
-  }
-};
+  // Tabela de mensagens
+  db.run(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      sender_id INTEGER,
+      receiver_id INTEGER,
+      content TEXT NOT NULL,
+      read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (sender_id) REFERENCES users(id),
+      FOREIGN KEY (receiver_id) REFERENCES users(id)
+    )
+  `);
 
-initDb();
+  console.log('✅ Base de dados inicializada com sucesso!');
+});
+
+db.close();
+
+module.exports = db;
