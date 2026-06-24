@@ -16,6 +16,7 @@ export default function NewProject() {
     description: "",
     budget: "",
     deadline: "",
+    image_url: "",
   });
 
   const categories = ["Desenvolvimento Web","Design Grafico","Marketing Digital","Redacao e Traducao","Video e Animacao","Musica e Audio","Servicos de IA","Negocios","Outro"];
@@ -29,7 +30,14 @@ export default function NewProject() {
       const res = await fetch(`${API_URL}/projects`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: project.title, description: project.description, budget: project.budget, category: project.category }),
+        body: JSON.stringify({ 
+          title: project.title, 
+          description: project.description, 
+          budget: project.budget, 
+          category: project.category,
+          deadline: project.deadline,
+          image_url: project.image_url
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Erro ao publicar"); return; }
@@ -79,6 +87,9 @@ export default function NewProject() {
         .preview-row:last-child { border-bottom: none; }
         .preview-label { color: #74767e; }
         .preview-value { font-weight: 500; color: #404145; }
+        .image-preview { width: 100%; height: 200px; border-radius: 8px; object-fit: cover; margin-bottom: 16px; border: 1px solid #e4e5e7; }
+        .image-placeholder { width: 100%; height: 200px; border-radius: 8px; background: #f5f5f5; border: 2px dashed #e4e5e7; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #74767e; margin-bottom: 16px; gap: 8px; }
+        .image-placeholder svg { width: 48px; height: 48px; stroke: #74767e; }
         @media (max-width: 600px) {
           .topbar { padding: 16px; }
           .container { padding: 32px 16px; }
@@ -154,6 +165,23 @@ export default function NewProject() {
               </div>
             </div>
 
+            <div className="form-group">
+              <label>Imagem do projecto (URL)</label>
+              <input type="text" placeholder="https://images.unsplash.com/..." value={project.image_url} onChange={e => setProject({...project, image_url: e.target.value})} />
+              <p className="hint">Cole um link de imagem que represente o teu projecto (opcional)</p>
+            </div>
+
+            {project.image_url && (
+              <img src={project.image_url} alt="Preview" className="image-preview" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+            )}
+
+            {!project.image_url && (
+              <div className="image-placeholder">
+                <svg viewBox="0 0 24 24" fill="none" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                <span>Sem imagem</span>
+              </div>
+            )}
+
             <button className="btn-next" disabled={project.description.length < 20 || !project.budget} onClick={() => setStep(3)}>Continuar →</button>
           </>
         )}
@@ -163,6 +191,10 @@ export default function NewProject() {
             <p className="step-label">Passo 3 de 3</p>
             <h1>Confirma e publica</h1>
             <p className="subtitle">Revê os detalhes antes de publicar.</p>
+
+            {project.image_url && (
+              <img src={project.image_url} alt="Projecto" className="image-preview" style={{marginBottom:"20px"}} />
+            )}
 
             <div className="preview-box">
               <h3>Resumo do projecto</h3>

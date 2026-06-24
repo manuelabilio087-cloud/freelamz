@@ -1,13 +1,14 @@
 const db = require('../config/db');
 
 const createProject = (req, res) => {
-  const { title, description, budget, category } = req.body;
+  const { title, description, budget, category, deadline, image_url } = req.body;
 
   db.run(
-    'INSERT INTO projects (title, description, budget, category, client_id) VALUES (?, ?, ?, ?, ?)',
-    [title, description, budget, category, req.user.id],
+    'INSERT INTO projects (title, description, budget, category, deadline, image_url, client_id) VALUES (?, ?, ?, ?, ?, ?, ?)',      
+    [title, description, budget, category, deadline || null, image_url || null, req.user.id],
     function(err) {
       if (err) {
+        console.error('Erro ao criar projeto:', err);
         return res.status(500).json({ message: 'Erro no servidor.', error: err.message });
       }
       db.get(
