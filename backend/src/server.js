@@ -30,3 +30,4 @@ app.listen(PORT, () => {
   console.log(`Servidor a correr na porta ${PORT}`);
   console.log('Base de dados conectada!');
 });
+
