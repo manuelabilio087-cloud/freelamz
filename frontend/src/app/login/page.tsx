@@ -26,8 +26,6 @@ export default function Login() {
       if (!res.ok) { setError(data.message || "Email ou senha incorrectos"); return; }
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Redirecionar conforme o tipo de conta
       if (data.user.role === "client") {
         router.push("/client-dashboard");
       } else {
@@ -53,9 +51,15 @@ export default function Login() {
         .logo span { color: #1dbf73; }
         .back-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: #404145; }
         .container { flex: 1; display: flex; }
-        .left { flex: 1; background: linear-gradient(135deg, #1dbf73, #0fa85c); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; color: #fff; }
-        .left h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
-        .left p { font-size: 16px; opacity: 0.9; margin-bottom: 32px; line-height: 1.6; }
+
+        .left { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; color: #fff; overflow: hidden; }
+        .left-bg { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 4px; }
+        .left-bg img { width: 100%; height: 100%; object-fit: cover; }
+        .left-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(29,191,115,0.88), rgba(10,140,80,0.92)); }
+        .left-content { position: relative; z-index: 10; }
+        .left-content h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; }
+        .left-content p { font-size: 16px; opacity: 0.9; margin-bottom: 32px; line-height: 1.6; }
+
         .features { display: flex; flex-direction: column; gap: 16px; }
         .feature { display: flex; align-items: center; gap: 12px; font-size: 15px; }
         .feature-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
@@ -95,20 +99,29 @@ export default function Login() {
 
         <div className="container">
           <div className="left">
-            <h2>Bem-vindo de volta ao Freelamz</h2>
-            <p>A plataforma freelance numero 1 de Mocambique. Encontra talento ou trabalho em minutos.</p>
-            <div className="features">
-              {[
-                {icon:"🇲🇿", text:"Plataforma 100% moçambicana"},
-                {icon:"✅", text:"Freelancers verificados"},
-                {icon:"💬", text:"Comunicacao directa"},
-                {icon:"🚀", text:"Projectos publicados em minutos"},
-              ].map((f, i) => (
-                <div key={i} className="feature">
-                  <div className="feature-icon">{f.icon}</div>
-                  <span>{f.text}</span>
-                </div>
-              ))}
+            <div className="left-bg">
+              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=80" alt="" />
+            </div>
+            <div className="left-overlay"></div>
+            <div className="left-content">
+              <h2>Bem-vindo de volta ao Freelamz</h2>
+              <p>A plataforma freelance numero 1 de Mocambique. Encontra talento ou trabalho em minutos.</p>
+              <div className="features">
+                {[
+                  {icon:"🇲🇿", text:"Plataforma 100% moçambicana"},
+                  {icon:"✅", text:"Freelancers verificados"},
+                  {icon:"💬", text:"Comunicacao directa"},
+                  {icon:"🚀", text:"Projectos publicados em minutos"},
+                ].map((f, i) => (
+                  <div key={i} className="feature">
+                    <div className="feature-icon">{f.icon}</div>
+                    <span>{f.text}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
