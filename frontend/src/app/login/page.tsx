@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,41 +51,27 @@ export default function Login() {
         .logo span { color: #1dbf73; }
         .back-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: #404145; }
         .container { flex: 1; display: flex; }
-
-        /* PAINEL ESQUERDO COM COLLAGE SVG */
         .left { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; color: #fff; overflow: hidden; }
-        .left-bg { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; background: #0d9e5c; }
-        .bg-cell { display: flex; align-items: center; justify-content: center; font-size: 64px; }
-        .bg-cell:nth-child(1) { background: linear-gradient(135deg, #0d9e5c, #0b8a50); }
-        .bg-cell:nth-child(2) { background: linear-gradient(135deg, #0b8a50, #097a45); }
-        .bg-cell:nth-child(3) { background: linear-gradient(135deg, #097a45, #0b8a50); }
-        .bg-cell:nth-child(4) { background: linear-gradient(135deg, #0b8a50, #0d9e5c); }
-        .left-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(29,191,115,0.7), rgba(10,140,80,0.85)); }
+        .left-bg { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; background: #000; }
+        .left-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+        .left-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); }
         .left-content { position: relative; z-index: 10; }
-        .left-content h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
-        .left-content p { font-size: 16px; opacity: 0.95; margin-bottom: 32px; line-height: 1.6; }
-
-        /* COLLAGE DE CARDS */
+        .left-content h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.2; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+        .left-content p { font-size: 16px; opacity: 0.95; margin-bottom: 32px; line-height: 1.6; text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
         .collage { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
         .collage-card { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; backdrop-filter: blur(4px); }
         .collage-emoji { font-size: 32px; }
         .collage-label { font-size: 12px; font-weight: 600; opacity: 0.95; text-align: center; }
-
         .features { display: flex; flex-direction: column; gap: 14px; }
         .feature { display: flex; align-items: center; gap: 12px; font-size: 15px; }
         .feature-icon { width: 36px; height: 36px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-
         .right { width: 480px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; }
         .box { width: 100%; max-width: 380px; }
         .box h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
         .box .subtitle { font-size: 14px; color: #74767e; margin-bottom: 32px; }
         .box .subtitle a { color: #1dbf73; font-weight: 600; }
-
-        /* BOTÕES SOCIAIS COM LOGOS REAIS */
         .btn-social { width: 100%; padding: 12px 16px; border: 1px solid #e4e5e7; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; background: #fff; color: #404145; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; transition: all 0.2s; text-decoration: none; }
         .btn-social:hover { background: #f5f5f5; border-color: #ccc; }
-        .btn-social svg { flex-shrink: 0; }
-
         .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #74767e; font-size: 13px; }
         .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e4e5e7; }
         .form-group { margin-bottom: 16px; }
@@ -117,16 +103,15 @@ export default function Login() {
         <div className="container">
           <div className="left">
             <div className="left-bg">
-              <div className="bg-cell">💻</div>
-              <div className="bg-cell">🎨</div>
-              <div className="bg-cell">📱</div>
-              <div className="bg-cell">🚀</div>
+              <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400&q=80" alt="" />
+              <img src="https://images.unsplash.com/photo-1560472355-536de3962603?w=400&q=80" alt="" />
             </div>
             <div className="left-overlay"></div>
             <div className="left-content">
               <h2>Bem-vindo de volta ao Freelamz</h2>
               <p>A plataforma freelance numero 1 de Mocambique. Encontra talento ou trabalho em minutos.</p>
-
               <div className="collage">
                 {[
                   {emoji:"👨‍💻", label:"Desenvolvedores Web"},
@@ -140,7 +125,6 @@ export default function Login() {
                   </div>
                 ))}
               </div>
-
               <div className="features">
                 {[
                   {icon:"🇲🇿", text:"Plataforma 100% moçambicana"},
@@ -162,7 +146,6 @@ export default function Login() {
               <h1>Entrar</h1>
               <p className="subtitle">Nao tens conta? <Link href="/register">Registar gratis</Link></p>
 
-              {/* GOOGLE - logo real SVG + link para registo */}
               <Link href="/register?method=google" className="btn-social">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -173,7 +156,6 @@ export default function Login() {
                 Continuar com Google
               </Link>
 
-              {/* FACEBOOK - logo real SVG + link para registo */}
               <Link href="/register?method=facebook" className="btn-social">
                 <svg width="20" height="20" viewBox="0 0 24 24">
                   <path fill="#1877F2" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
