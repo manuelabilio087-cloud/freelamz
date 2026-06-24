@@ -10,7 +10,6 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("freelancer");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +21,7 @@ export default function Register() {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role }),
+        body: JSON.stringify({ name, email, password, role: "freelancer" }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Erro ao criar conta"); return; }
@@ -64,8 +63,8 @@ export default function Register() {
         .box .subtitle a { color: #1dbf73; font-weight: 600; }
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-size: 13px; font-weight: 600; color: #404145; margin-bottom: 6px; }
-        .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 1px solid #e4e5e7; border-radius: 4px; font-size: 14px; outline: none; color: #404145; transition: border-color 0.2s; font-family: inherit; background: #fff; }
-        .form-group input:focus, .form-group select:focus { border-color: #1dbf73; }
+        .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #e4e5e7; border-radius: 4px; font-size: 14px; outline: none; color: #404145; transition: border-color 0.2s; font-family: inherit; }
+        .form-group input:focus { border-color: #1dbf73; }
         .btn-primary { width: 100%; padding: 14px; background: #1dbf73; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
         .btn-primary:hover { background: #0fa85c; }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -127,13 +126,6 @@ export default function Register() {
                 <div className="form-group">
                   <label>Senha</label>
                   <input type="password" placeholder="Minimo 6 caracteres" value={password} onChange={e => setPassword(e.target.value)} required />
-                </div>
-                <div className="form-group">
-                  <label>Tipo de conta</label>
-                  <select value={role} onChange={e => setRole(e.target.value)}>
-                    <option value="freelancer">Freelancer</option>
-                    <option value="client">Cliente</option>
-                  </select>
                 </div>
                 {error && <p className="error">{error}</p>}
                 <button type="submit" className="btn-primary" disabled={loading}>
