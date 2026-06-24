@@ -7,6 +7,8 @@ require('dotenv').config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const emailCodes = new Map();
+
 const register = async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -144,4 +146,62 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, forgotPassword, resetPassword };
+const sendEmailCode = async (req, res) => {
+  const { email } = req.body;
+  
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ message: 'Email invalido' });
+  }
+
+  try {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    emailCodes.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
+
+    await resend.emails.send({
+      from: 'Freelamz <onboarding@resend.dev>',
+      to: email,
+      subject: 'Codigo de verificacao - Freelamz',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #1dbf73;">Verifica a tua conta</h2>
+          <p>Ola,</p>
+          <p>O teu codigo de verificacao e:</p>
+          <h1 style="font-size: 36px; letter-spacing: 8px; color: #404145; margin: 24px 0;">${code}</h1>
+          <p style="color: #74767e; font-size: 13px;">Valido por 10 minutos. Nao partilhes este codigo.</p>
+          <hr style="border: none; border-top: 1px solid #e4e5e7; margin: 24px 0;">
+          <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+        </div>
+      `
+    });
+
+    console.log(`Codigo para ${email}: ${code}`);
+    res.json({ message: 'Codigo enviado', success: true });
+  } catch (err) {
+    console.error('Erro ao enviar codigo:', err);
+    res.status(500).json({ message: 'Erro ao enviar email' });
+  }
+};
+
+const verifyEmailCode = async (req, res) => {
+  const { email, code } = req.body;
+  
+  try {
+    const stored = emailCodes.get(email);
+    
+    if (!stored) return res.status(400).json({ message: 'Codigo nao encontrado. Solicita novo.' });
+    if (Date.now() > stored.expires) {
+      emailCodes.delete(email);
+      return res.status(400).json({ message: 'Codigo expirado. Solicita novo.' });
+    }
+    if (stored.code !== code) return res.status(400).json({ message: 'Codigo incorreto' });
+    
+    emailCodes.delete(email);
+    
+    res.json({ message: 'Email verificado com sucesso', success: true });
+  } catch (err) {
+    console.error('Erro na verificacao:', err);
+    res.status(500).json({ message: 'Erro ao verificar' });
+  }
+};
+
+module.exports = { register, login, forgotPassword, resetPassword, sendEmailCode, verifyEmailCode };
