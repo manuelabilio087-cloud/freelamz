@@ -2,13 +2,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/providers";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
 export default function Register() {
   const router = useRouter();
-  const { login } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,25 +17,18 @@ export default function Register() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, role: "freelancer" }),
       });
-
       const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Erro ao registar");
-        setLoading(false);
-        return;
-      }
-
-      login(data.token, data.user);
+      if (!res.ok) { setError(data.message || "Erro ao registar"); return; }
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
       router.push("/welcome");
-    } catch (err) {
+    } catch {
       setError("Erro de conexao com o servidor");
     } finally {
       setLoading(false);
@@ -45,63 +36,70 @@ export default function Register() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f7f7f7", fontFamily: "Inter, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+    <>
       <style>{`
-        .input-field { width: 100%; padding: 14px 16px; border: 1px solid #c5c6c9; border-radius: 8px; font-size: 15px; outline: none; transition: border 0.2s; background: #fff; color: #404145; }
-        .input-field:focus { border-color: #1dbf73; }
-        .btn-green { width: 100%; background: #1dbf73; color: #fff; padding: 14px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; }
-        .btn-green:hover { background: #19a463; }
-        .btn-green:disabled { opacity: 0.6; cursor: not-allowed; }
-        .card { background: #fff; border: 1px solid #e4e5e7; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        @media (max-width: 768px) { .layout { flex-direction: column !important; } .side { display: none !important; } }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Inter, sans-serif; background: #fff; }
+        .page { min-height: 100vh; display: flex; flex-direction: column; }
+        .topbar { display: flex; align-items: center; justify-content: space-between; padding: 20px 32px; border-bottom: 1px solid #e4e5e7; }
+        .logo { font-size: 24px; font-weight: 700; color: #000; text-decoration: none; }
+        .logo span { color: #1dbf73; }
+        .back-btn { display: flex; align-items: center; gap: 8px; color: #404145; font-size: 14px; cursor: pointer; background: none; border: none; }
+        .container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+        .box { width: 100%; max-width: 420px; }
+        .box h1 { font-size: 28px; font-weight: 700; color: #404145; margin-bottom: 8px; }
+        .box p { color: #74767e; font-size: 14px; margin-bottom: 28px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #404145; margin-bottom: 6px; }
+        .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #e4e5e7; border-radius: 4px; font-size: 14px; outline: none; color: #404145; }
+        .form-group input:focus { border-color: #1dbf73; }
+        .btn-primary { width: 100%; padding: 14px; background: #1dbf73; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: #74767e; font-size: 13px; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e4e5e7; }
+        .btn-social { width: 100%; padding: 12px; border: 1px solid #e4e5e7; border-radius: 4px; font-size: 14px; font-weight: 500; cursor: pointer; background: #fff; color: #404145; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .btn-social:hover { background: #f5f5f5; }
+        .error { color: #e53e3e; font-size: 13px; margin-bottom: 12px; }
+        .login-link { text-align: center; margin-top: 20px; font-size: 14px; color: #74767e; }
+        .login-link a { color: #1dbf73; font-weight: 600; }
+        .terms { text-align: center; font-size: 12px; color: #74767e; margin-top: 16px; line-height: 1.5; }
       `}</style>
-
-      <Link href="/" style={{ position: "absolute", top: "24px", left: "24px", color: "#404145", textDecoration: "none", fontSize: "28px", zIndex: 10 }}>←</Link>
-
-      <div className="card" style={{ maxWidth: "900px", width: "100%" }}>
-        <div className="layout" style={{ display: "flex", minHeight: "560px" }}>
-          <div className="side" style={{ flex: 1, background: "linear-gradient(135deg, #1dbf73, #0a8c55)", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center", padding: "48px" }}>
-            <h2 style={{ fontSize: "32px", fontWeight: "700", marginBottom: "24px" }}>O sucesso comeca aqui.</h2>
-            <ul style={{ display: "flex", flexDirection: "column", gap: "16px", fontSize: "18px", listStyle: "none", padding: 0 }}>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Mais de 700 categorias</li>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Trabalho de qualidade feito mais rapido</li>
-              <li style={{ display: "flex", alignItems: "center", gap: "10px" }}><span style={{ fontSize: "20px" }}>✓</span> Acesso a talentos em todo Mocambique</li>
-            </ul>
-          </div>
-
-          <div style={{ flex: 1, padding: "48px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "8px" }}>Crie a sua conta.</h1>
-            <p style={{ color: "#74767e", fontSize: "14px", marginBottom: "32px" }}>
-              Ja tem uma conta? <Link href="/login" style={{ color: "#1dbf73", fontWeight: "600", textDecoration: "none" }}>Entre aqui.</Link>
-            </p>
-
-            <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Nome completo</label>
-                <input type="text" className="input-field" placeholder="O seu nome" value={name} onChange={(e) => setName(e.target.value)} required />
+      <div className="page">
+        <div className="topbar">
+          <button className="back-btn" onClick={() => router.back()}>← Voltar</button>
+          <Link href="/" className="logo">Freelamz<span>.</span></Link>
+          <Link href="/login" style={{fontSize:"14px", color:"#404145"}}>Entrar</Link>
+        </div>
+        <div className="container">
+          <div className="box">
+            <h1>Cria a tua conta</h1>
+            <p>Junta-te a comunidade Freelamz</p>
+            <button className="btn-social">🔵 Continuar com Google</button>
+            <button className="btn-social">🔷 Continuar com Facebook</button>
+            <div className="divider">ou</div>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label>Nome completo</label>
+                <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="O teu nome" required />
               </div>
-              <div>
-                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Email</label>
-                <input type="email" className="input-field" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
+              <div className="form-group">
+                <label>Email</label>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="seu@email.com" required />
               </div>
-              <div>
-                <label style={{ display: "block", fontSize: "14px", fontWeight: "600", color: "#404145", marginBottom: "8px" }}>Senha</label>
-                <input type="password" className="input-field" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
+              <div className="form-group">
+                <label>Senha</label>
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min. 8 caracteres" required />
               </div>
-
-              {error && (
-                <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#dc2626", padding: "12px 16px", borderRadius: "8px", fontSize: "14px" }}>
-                  {error}
-                </div>
-              )}
-
-              <button type="submit" className="btn-green" disabled={loading}>
-                {loading ? "A registar..." : "Criar conta"}
+              {error && <p className="error">{error}</p>}
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? "A criar conta..." : "Criar conta"}
               </button>
             </form>
+            <p className="login-link">Já tens conta? <Link href="/login">Entrar</Link></p>
+            <p className="terms">Ao criar conta concordas com os <a href="#" style={{color:"#1dbf73"}}>Termos de Serviço</a> e <a href="#" style={{color:"#1dbf73"}}>Política de Privacidade</a> do Freelamz.</p>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
