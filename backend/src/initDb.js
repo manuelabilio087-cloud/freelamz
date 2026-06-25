@@ -21,6 +21,8 @@ const createTables = async () => {
         description TEXT NOT NULL,
         budget DECIMAL(10,2),
         category VARCHAR(100),
+        deadline VARCHAR(50),
+        image_url VARCHAR(500),
         status VARCHAR(20) DEFAULT 'open',
         client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT NOW()
