@@ -22,6 +22,7 @@ const createTables = async () => {
         budget DECIMAL(10,2),
         category VARCHAR(100),
         deadline VARCHAR(50),
+        image_url VARCHAR(255),
         status VARCHAR(20) DEFAULT 'open',
         client_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT NOW()
@@ -66,6 +67,7 @@ const createTables = async () => {
       );
 
       ALTER TABLE projects ADD COLUMN IF NOT EXISTS deadline VARCHAR(50);
+      ALTER TABLE projects ADD COLUMN IF NOT EXISTS image_url VARCHAR(255);
     `);
     console.log('Tabelas criadas com sucesso!');
   } catch (err) {
