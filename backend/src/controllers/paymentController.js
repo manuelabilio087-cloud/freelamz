@@ -1,100 +1,102 @@
 const pool = require('../config/db');
+const { sendPaymentEmail } = require('../services/emailService');
+const { calculateCommission } = require('./subscriptionController');
 
-// Inicia pagamento M-Pesa
 const initiatePayment = async (req, res) => {
   const { contract_id, amount, mpesa_number, description } = req.body;
   const payer_id = req.user.id;
 
   try {
-    // Verifica se o contrato existe e está activo
     const contract = await pool.query(
       'SELECT * FROM contracts WHERE id = $1 AND client_id = $2 AND status = $3',
       [contract_id, payer_id, 'active']
     );
 
     if (contract.rows.length === 0) {
-      return res.status(404).json({ message: 'Contrato nao encontrado ou nao esta activo.' });
+      return res.status(404).json({ message: 'Contrato não encontrado ou não está activo.' });
     }
 
     const freelancer_id = contract.rows[0].freelancer_id;
 
-    // Cria registo de pagamento
+    // Calcula comissão 5%
+    const { commission, freelancerReceives } = calculateCommission(amount);
+
     const payment = await pool.query(
       `INSERT INTO payments (contract_id, payer_id, receiver_id, amount, mpesa_number, description, status)
        VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *`,
       [contract_id, payer_id, freelancer_id, amount, mpesa_number, description]
     );
 
-    // Aqui integrarias com a API real da Vodacom M-Pesa Moçambique
-    // Por agora simulamos a resposta da API
-    const mpesaResponse = await simulateMpesaPayment(mpesa_number, amount);
-
-    if (mpesaResponse.success) {
-      // Actualiza pagamento com ID da transacção
-      await pool.query(
-        `UPDATE payments SET status = 'completed', mpesa_transaction_id = $1, updated_at = NOW() 
-         WHERE id = $2`,
-        [mpesaResponse.transaction_id, payment.rows[0].id]
-      );
-
-      // Notifica freelancer via Socket.io
-      const io = req.app.get('io');
-      if (io) {
-        io.emit(`notification:${freelancer_id}`, {
-          type: 'payment',
-          title: 'Pagamento recebido! 💰',
-          body: `Recebeste ${amount} MZN via M-Pesa.`,
-          url: '/dashboard',
-        });
-      }
-
-      return res.json({
-        message: 'Pagamento efectuado com sucesso!',
-        transaction_id: mpesaResponse.transaction_id,
-        payment: { ...payment.rows[0], status: 'completed' }
-      });
-    } else {
-      await pool.query(
-        `UPDATE payments SET status = 'failed', updated_at = NOW() WHERE id = $1`,
-        [payment.rows[0].id]
-      );
-      return res.status(400).json({ message: 'Pagamento falhou. Tenta novamente.' });
+    // Simula M-Pesa
+    const mpesaRegex = /^(84|85|86|87)\d{7}$/;
+    if (!mpesaRegex.test(mpesa_number)) {
+      return res.status(400).json({ message: 'Número M-Pesa inválido.' });
     }
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    const transaction_id = 'MPESA' + Date.now() + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+    await pool.query(
+      `UPDATE payments SET status = 'completed', mpesa_transaction_id = $1, updated_at = NOW()
+       WHERE id = $2`,
+      [transaction_id, payment.rows[0].id]
+    );
+
+    // Busca dados do freelancer para email
+    const freelancer = await pool.query(
+      'SELECT name, email FROM users WHERE id = $1',
+      [freelancer_id]
+    );
+
+    // Busca título do projecto
+    const project = await pool.query(
+      'SELECT proj.title FROM contracts c JOIN projects proj ON c.project_id = proj.id WHERE c.id = $1',
+      [contract_id]
+    );
+
+    const projectTitle = project.rows[0]?.title || 'Projecto';
+
+    // Email ao freelancer com valor já deduzido
+    if (freelancer.rows.length > 0) {
+      sendPaymentEmail(freelancer.rows[0], freelancerReceives, projectTitle);
+    }
+
+    // Notificação Socket.io
+    const io = req.app.get('io');
+    if (io) {
+      io.emit(`notification:${freelancer_id}`, {
+        type: 'payment',
+        title: 'Pagamento recebido! 💰',
+        body: `Recebeste ${Number(freelancerReceives).toLocaleString()} MT via M-Pesa (após comissão de 5%).`,
+        url: '/payments',
+      });
+    }
+
+    return res.json({
+      message: 'Pagamento efectuado com sucesso!',
+      transaction_id,
+      amount_paid: Number(amount),
+      commission: Number(commission),
+      freelancer_receives: Number(freelancerReceives),
+      payment: { ...payment.rows[0], status: 'completed' }
+    });
+
   } catch (err) {
     console.error('Erro no pagamento:', err);
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
 };
 
-// Simulação da API M-Pesa (substituir pela API real da Vodacom MZ)
-const simulateMpesaPayment = async (mpesa_number, amount) => {
-  // Valida número M-Pesa moçambicano (84/85/86/87)
-  const mpesaRegex = /^(84|85|86|87)\d{7}$/;
-  if (!mpesaRegex.test(mpesa_number)) {
-    return { success: false, error: 'Número M-Pesa inválido.' };
-  }
-
-  // Simula delay da API (1-2 segundos)
-  await new Promise(resolve => setTimeout(resolve, 1500));
-
-  // Gera ID de transacção simulado
-  const transaction_id = 'MPESA' + Date.now() + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-  return { success: true, transaction_id };
-};
-
-// Busca pagamentos do utilizador
 const getMyPayments = async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT p.*, 
+      `SELECT p.*,
         c.project_id,
         proj.title as project_title,
         upayer.name as payer_name,
         ureceiver.name as receiver_name
        FROM payments p
-       JOIN contracts c ON p.contract_id = c.id
-       JOIN projects proj ON c.project_id = proj.id
+       LEFT JOIN contracts c ON p.contract_id = c.id
+       LEFT JOIN projects proj ON c.project_id = proj.id
        JOIN users upayer ON p.payer_id = upayer.id
        JOIN users ureceiver ON p.receiver_id = ureceiver.id
        WHERE p.payer_id = $1 OR p.receiver_id = $1
@@ -108,25 +110,25 @@ const getMyPayments = async (req, res) => {
   }
 };
 
-// Resumo financeiro
 const getFinancialSummary = async (req, res) => {
   try {
     const userId = req.user.id;
 
     const received = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total FROM payments 
-       WHERE receiver_id = $1 AND status = 'completed'`,
+      `SELECT COALESCE(SUM(amount * 0.95), 0) as total FROM payments
+       WHERE receiver_id = $1 AND status = 'completed'
+       AND description NOT LIKE '%Subscrição%'`,
       [userId]
     );
 
     const sent = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total FROM payments 
+      `SELECT COALESCE(SUM(amount), 0) as total FROM payments
        WHERE payer_id = $1 AND status = 'completed'`,
       [userId]
     );
 
     const pending = await pool.query(
-      `SELECT COALESCE(SUM(amount), 0) as total FROM payments 
+      `SELECT COALESCE(SUM(amount), 0) as total FROM payments
        WHERE (payer_id = $1 OR receiver_id = $1) AND status = 'pending'`,
       [userId]
     );
