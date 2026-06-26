@@ -67,6 +67,51 @@ const login = async (req, res) => {
   }
 };
 
+const adminLogin = async (req, res) => {
+  const { email, password } = req.body;
+  const ADMIN_EMAIL = 'manuelabilio087@gmail.com';
+  
+  try {
+    if (email !== ADMIN_EMAIL) {
+      return res.status(403).json({ message: 'Acesso negado. Apenas administrador.' });
+    }
+    
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (user.rows.length === 0) {
+      return res.status(400).json({ message: 'Administrador nao encontrado.' });
+    }
+    
+    if (!user.rows[0].is_admin) {
+      return res.status(403).json({ message: 'Acesso negado. Conta sem privilegios de admin.' });
+    }
+    
+    const validPassword = await bcrypt.compare(password, user.rows[0].password);
+    if (!validPassword) {
+      return res.status(400).json({ message: 'Senha incorrecta.' });
+    }
+    
+    const token = jwt.sign(
+      { id: user.rows[0].id, role: user.rows[0].role, is_admin: true },
+      process.env.JWT_SECRET || 'freelamz_secret_key_2024',
+      { expiresIn: '7d' }
+    );
+    
+    res.json({
+      user: {
+        id: user.rows[0].id,
+        name: user.rows[0].name,
+        email: user.rows[0].email,
+        role: user.rows[0].role,
+        is_admin: true
+      },
+      token
+    });
+  } catch (err) {
+    console.error('Erro no admin login:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+};
+
 const googleLogin = async (req, res) => {
   const { email, name, google_id, avatar } = req.body;
   try {
@@ -207,4 +252,4 @@ const verifyEmailCode = async (req, res) => {
   }
 };
 
-module.exports = { register, login, googleLogin, forgotPassword, resetPassword, sendEmailCode, verifyEmailCode };
+module.exports = { register, login, adminLogin, googleLogin, forgotPassword, resetPassword, sendEmailCode, verifyEmailCode };
