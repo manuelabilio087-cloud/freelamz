@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser, verifyFreelancer } = require('../controllers/userController');
+const { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser, verifyFreelancer, sendNewsletter } = require('../controllers/userController');
 const authMiddleware = require('../middleware/authMiddleware');
 
 router.get('/profile', authMiddleware, getProfile);
@@ -9,5 +9,6 @@ router.get('/freelancers', getFreelancers);
 router.get('/all', authMiddleware, getAllUsers);
 router.delete('/:id', authMiddleware, deleteUser);
 router.put('/verify/:id', authMiddleware, verifyFreelancer);
+router.post('/newsletter', authMiddleware, sendNewsletter);
 
 module.exports = router;
