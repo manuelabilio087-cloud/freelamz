@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -10,19 +10,25 @@ const StarRating = ({ rating, onRate }: { rating: number; onRate?: (r: number) =
   return (
     <div style={{display:"flex",gap:"4px"}}>
       {[1,2,3,4,5].map(star => (
-        <span
+        <svg
           key={star}
+          width="28" height="28" viewBox="0 0 24 24"
           onClick={() => onRate && onRate(star)}
           onMouseEnter={() => onRate && setHover(star)}
           onMouseLeave={() => onRate && setHover(0)}
-          style={{fontSize:"24px",cursor:onRate?"pointer":"default",color:(hover||rating)>=star?"#f5c518":"#e4e5e7",transition:"color 0.1s"}}
-        >★</span>
+          style={{cursor:onRate?"pointer":"default",transition:"all 0.1s"}}
+          fill={(hover||rating)>=star?"#f5c518":"#e4e5e7"}
+          stroke={(hover||rating)>=star?"#f5c518":"#e4e5e7"}
+          strokeWidth="1"
+        >
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
       ))}
     </div>
   );
 };
 
-export default function Reviews() {
+function ReviewsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const freelancer_id = searchParams.get("freelancer_id");
@@ -109,7 +115,7 @@ export default function Reviews() {
         .rating-summary { display: flex; align-items: center; gap: 24px; padding: 20px; background: #f9f9f9; border-radius: 12px; margin-bottom: 20px; }
         .big-rating { font-size: 48px; font-weight: 700; color: #404145; }
         .rating-info { flex: 1; }
-        .rating-label { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .rating-label { font-size: 16px; font-weight: 600; margin-bottom: 4px; margin-top: 8px; }
         .rating-total { font-size: 13px; color: #74767e; }
         .tabs { display: flex; border-bottom: 2px solid #e4e5e7; margin-bottom: 24px; }
         .tab { padding: 12px 20px; font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; color: #74767e; background: none; border-top: none; border-left: none; border-right: none; }
@@ -213,7 +219,7 @@ export default function Reviews() {
               {sent ? (
                 <div className="success-msg">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                  Avaliação enviada com sucesso! Obrigado pelo teu feedback.
+                  Avaliação enviada com sucesso!
                 </div>
               ) : !user ? (
                 <div className="login-prompt">
@@ -229,20 +235,11 @@ export default function Reviews() {
                   </div>
                   <div className="form-group">
                     <label>Comentário</label>
-                    <textarea
-                      value={comment}
-                      onChange={e => setComment(e.target.value)}
-                      placeholder="Descreve a tua experiência com este freelancer..."
-                    />
+                    <textarea value={comment} onChange={e => setComment(e.target.value)} placeholder="Descreve a tua experiência com este freelancer..." />
                   </div>
                   {error && <div className="error-msg">{error}</div>}
                   <button className="btn-primary" onClick={submitReview} disabled={sending}>
-                    {sending ? "A enviar..." : (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        Enviar avaliação
-                      </>
-                    )}
+                    {sending ? "A enviar..." : "Enviar avaliação"}
                   </button>
                 </>
               )}
@@ -251,5 +248,13 @@ export default function Reviews() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function Reviews() {
+  return (
+    <Suspense fallback={<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}>A carregar...</div>}>
+      <ReviewsContent />
+    </Suspense>
   );
 }
