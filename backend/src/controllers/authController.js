@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const pool = require('../config/db');
+const { sendWelcomeEmail } = require('../services/emailService');
 require('dotenv').config();
 
 const transporter = nodemailer.createTransport({
@@ -10,12 +11,10 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-  tls: {
-    rejectUnauthorized: false
-  }
+  tls: { rejectUnauthorized: false }
 });
 
 const emailCodes = new Map();
@@ -37,6 +36,8 @@ const register = async (req, res) => {
       process.env.JWT_SECRET || 'freelamz_secret_key_2024',
       { expiresIn: '7d' }
     );
+    // Email de boas-vindas
+    sendWelcomeEmail(newUser.rows[0]);
     res.status(201).json({ user: newUser.rows[0], token });
   } catch (err) {
     console.error('Erro no registo:', err);
@@ -70,42 +71,27 @@ const login = async (req, res) => {
 const adminLogin = async (req, res) => {
   const { email, password } = req.body;
   const ADMIN_EMAIL = 'manuelabilio087@gmail.com';
-  
   try {
     if (email !== ADMIN_EMAIL) {
       return res.status(403).json({ message: 'Acesso negado. Apenas administrador.' });
     }
-    
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       return res.status(400).json({ message: 'Administrador nao encontrado.' });
     }
-    
     if (!user.rows[0].is_admin) {
       return res.status(403).json({ message: 'Acesso negado. Conta sem privilegios de admin.' });
     }
-    
     const validPassword = await bcrypt.compare(password, user.rows[0].password);
     if (!validPassword) {
       return res.status(400).json({ message: 'Senha incorrecta.' });
     }
-    
     const token = jwt.sign(
       { id: user.rows[0].id, role: user.rows[0].role, is_admin: true },
       process.env.JWT_SECRET || 'freelamz_secret_key_2024',
       { expiresIn: '7d' }
     );
-    
-    res.json({
-      user: {
-        id: user.rows[0].id,
-        name: user.rows[0].name,
-        email: user.rows[0].email,
-        role: user.rows[0].role,
-        is_admin: true
-      },
-      token
-    });
+    res.json({ user: { id: user.rows[0].id, name: user.rows[0].name, email: user.rows[0].email, role: user.rows[0].role, is_admin: true }, token });
   } catch (err) {
     console.error('Erro no admin login:', err);
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
@@ -115,20 +101,16 @@ const adminLogin = async (req, res) => {
 const setAdminPassword = async (req, res) => {
   const { email, newPassword } = req.body;
   const ADMIN_EMAIL = 'manuelabilio087@gmail.com';
-  
   try {
     if (email !== ADMIN_EMAIL) {
       return res.status(403).json({ message: 'Acesso negado.' });
     }
-    
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     if (user.rows.length === 0) {
       return res.status(404).json({ message: 'Utilizador nao encontrado.' });
     }
-    
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await pool.query('UPDATE users SET password = $1, is_admin = true WHERE email = $2', [hashedPassword, email]);
-    
     res.json({ message: 'Senha de admin definida com sucesso!' });
   } catch (err) {
     console.error('Erro ao definir senha de admin:', err);
@@ -140,12 +122,15 @@ const googleLogin = async (req, res) => {
   const { email, name, google_id, avatar } = req.body;
   try {
     let user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-    if (user.rows.length === 0) {
+    const isNewUser = user.rows.length === 0;
+    if (isNewUser) {
       const newUser = await pool.query(
         'INSERT INTO users (name, email, password, role, avatar, google_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, role, avatar',
         [name, email, crypto.randomBytes(16).toString('hex'), 'freelancer', avatar || '', google_id]
       );
       user = newUser;
+      // Email de boas-vindas para novos utilizadores Google
+      sendWelcomeEmail(newUser.rows[0]);
     } else {
       await pool.query(
         'UPDATE users SET google_id = $1, avatar = COALESCE(NULLIF(avatar, \'\'), $2) WHERE email = $3',
@@ -158,10 +143,7 @@ const googleLogin = async (req, res) => {
       process.env.JWT_SECRET || 'freelamz_secret_key_2024',
       { expiresIn: '7d' }
     );
-    res.json({
-      user: { id: user.rows[0].id, name: user.rows[0].name, email: user.rows[0].email, role: user.rows[0].role, avatar: user.rows[0].avatar },
-      token
-    });
+    res.json({ user: { id: user.rows[0].id, name: user.rows[0].name, email: user.rows[0].email, role: user.rows[0].role, avatar: user.rows[0].avatar }, token });
   } catch (err) {
     console.error('Erro no Google login:', err);
     res.status(500).json({ message: 'Erro no servidor.', error: err.message });
@@ -182,24 +164,21 @@ const forgotPassword = async (req, res) => {
       [email, token, expiresAt]
     );
     const resetUrl = `https://freelamz-frontend.vercel.app/reset-password?token=${token}`;
-    try {
-      await transporter.sendMail({
-        from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject: 'Recuperacao de senha - Freelamz',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-            <h2 style="color: #1dbf73;">Recuperacao de senha</h2>
-            <p>Ola,</p>
-            <p>Recebemos um pedido para redefinir a senha da sua conta Freelamz.</p>
-            <a href="${resetUrl}" style="display: inline-block; background: #1dbf73; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0;">Redefinir senha</a>
-            <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+    await transporter.sendMail({
+      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Recuperacao de senha - Freelamz',
+      html: `
+        <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f5f6fa;">
+          <div style="background:#fff;border-radius:16px;padding:32px;">
+            <h1 style="font-size:24px;font-weight:800;color:#1a1d27;">Freelamz<span style="color:#6366f1;">.</span></h1>
+            <h2 style="font-size:18px;font-weight:700;margin:16px 0 8px;">Recuperação de senha</h2>
+            <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:20px;">Clica no botão abaixo para redefinir a tua senha. O link expira em 1 hora.</p>
+            <a href="${resetUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;">Redefinir senha</a>
           </div>
-        `
-      });
-    } catch (emailErr) {
-      console.error('Erro ao enviar email:', emailErr);
-    }
+        </div>
+      `
+    });
     res.json({ message: 'Se este email estiver registado, enviaremos as instrucoes de recuperacao.' });
   } catch (err) {
     console.error('Erro no forgot password:', err);
@@ -237,20 +216,20 @@ const sendEmailCode = async (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     emailCodes.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'Codigo de verificacao - Freelamz',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <h2 style="color: #1dbf73;">Verifica a tua conta</h2>
-          <p>O teu codigo de verificacao e:</p>
-          <h1 style="font-size: 36px; letter-spacing: 8px; color: #404145; margin: 24px 0;">${code}</h1>
-          <p style="color: #74767e; font-size: 13px;">Valido por 10 minutos. Nao partilhes este codigo.</p>
-          <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+        <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f5f6fa;">
+          <div style="background:#fff;border-radius:16px;padding:32px;text-align:center;">
+            <h1 style="font-size:24px;font-weight:800;color:#1a1d27;">Freelamz<span style="color:#6366f1;">.</span></h1>
+            <h2 style="font-size:18px;font-weight:700;margin:16px 0 8px;">Código de verificação</h2>
+            <div style="font-size:40px;font-weight:800;letter-spacing:12px;color:#6366f1;margin:24px 0;">${code}</div>
+            <p style="color:#6b7280;font-size:13px;">Válido por 10 minutos. Não partilhes este código.</p>
+          </div>
         </div>
       `
     });
-    console.log(`Codigo para ${email}: ${code}`);
     res.json({ message: 'Codigo enviado', success: true });
   } catch (err) {
     console.error('Erro ao enviar codigo:', err);
