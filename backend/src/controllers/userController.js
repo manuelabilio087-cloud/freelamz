@@ -51,6 +51,24 @@ const getFreelancers = async (req, res) => {
   }
 };
 
+const getFreelancerById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      `SELECT id, name, bio, skills, location, avatar, verified, created_at 
+       FROM users WHERE id = $1 AND role = 'freelancer'`,
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Freelancer não encontrado.' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Erro ao buscar freelancer:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+};
+
 const getAllUsers = async (req, res) => {
   try {
     const users = await pool.query(
@@ -97,23 +115,16 @@ const sendNewsletter = async (req, res) => {
   try {
     const users = await pool.query('SELECT email FROM users WHERE email IS NOT NULL');
     const emails = users.rows.map(u => u.email);
-    
     if (emails.length === 0) {
       return res.status(400).json({ message: 'Nenhum utilizador com email encontrado.' });
     }
-
     const mailOptions = {
       from: `"Freelamz" <${process.env.EMAIL_USER}>`,
       to: emails.join(','),
       subject: subject,
       html: `
         <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f5f6fa;">
-          <div style="background:#fff;border-radius:16px;padding:32px;box-shadow:0 4px 12px rgba(0,0,0,0.08);">
-            <div style="text-align:center;margin-bottom:24px;">
-              <div style="width:48px;height:48px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;">
-                <span style="color:#fff;font-size:24px;font-weight:700;">F</span>
-              </div>
-            </div>
+          <div style="background:#fff;border-radius:16px;padding:32px;">
             <h2 style="color:#1a1d27;font-size:20px;margin-bottom:16px;">${subject}</h2>
             <div style="color:#4b5563;font-size:15px;line-height:1.6;">${message}</div>
             <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e8eaf0;text-align:center;color:#8b90a7;font-size:13px;">
@@ -123,7 +134,6 @@ const sendNewsletter = async (req, res) => {
         </div>
       `,
     };
-
     await transporter.sendMail(mailOptions);
     res.json({ message: `Newsletter enviada para ${emails.length} utilizadores!` });
   } catch (err) {
@@ -135,49 +145,14 @@ const sendNewsletter = async (req, res) => {
 const getFreelancerStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    
-    // Total de propostas enviadas
-    const proposalsRes = await pool.query(
-      'SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1',
-      [userId]
-    );
-    
-    // Propostas aceites
-    const acceptedRes = await pool.query(
-      'SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = $2',
-      [userId, 'accepted']
-    );
-    
-    // Projectos em andamento
-    const ongoingRes = await pool.query(
-      'SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
-      [userId, 'in_progress']
-    );
-    
-    // Projectos concluídos
-    const completedRes = await pool.query(
-      'SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
-      [userId, 'completed']
-    );
-    
-    // Total ganho
-    const earningsRes = await pool.query(
-      'SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
-      [userId, 'completed']
-    );
-    
-    // Avaliação média
-    const ratingRes = await pool.query(
-      'SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1',
-      [userId]
-    );
-    
-    // Mensagens não lidas
-    const unreadRes = await pool.query(
-      'SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false',
-      [userId]
-    );
-    
+    const proposalsRes = await pool.query('SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1', [userId]);
+    const acceptedRes = await pool.query("SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = 'accepted'", [userId]);
+    const ongoingRes = await pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'in_progress'", [userId]);
+    const completedRes = await pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]);
+    const earningsRes = await pool.query("SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]);
+    const ratingRes = await pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1', [userId]);
+    const unreadRes = await pool.query('SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false', [userId]);
+
     res.json({
       proposals: parseInt(proposalsRes.rows[0].total),
       accepted: parseInt(acceptedRes.rows[0].total),
@@ -185,7 +160,7 @@ const getFreelancerStats = async (req, res) => {
       completed: parseInt(completedRes.rows[0].total),
       earnings: parseInt(earningsRes.rows[0].total),
       rating: parseFloat(ratingRes.rows[0].avg).toFixed(1),
-      unreadMessages: parseInt(unreadRes.rows[0].total)
+      unreadMessages: parseInt(unreadRes.rows[0].total),
     });
   } catch (err) {
     console.error('Erro ao buscar estatisticas:', err);
@@ -193,4 +168,4 @@ const getFreelancerStats = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser, verifyFreelancer, sendNewsletter, getFreelancerStats };
+module.exports = { getProfile, updateProfile, getFreelancers, getFreelancerById, getAllUsers, deleteUser, verifyFreelancer, sendNewsletter, getFreelancerStats };
