@@ -11,6 +11,7 @@ const messageRoutes = require('./routes/messageRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const contractRoutes = require('./routes/contractRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
 
 dotenv.config();
 
@@ -90,6 +91,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/contracts', contractRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
