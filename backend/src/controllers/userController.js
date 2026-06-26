@@ -54,4 +54,15 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, getFreelancers, getAllUsers };
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM users WHERE id = $1', [id]);
+    res.json({ message: 'Utilizador removido com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao remover utilizador:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+};
+
+module.exports = { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser };
