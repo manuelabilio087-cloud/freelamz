@@ -86,47 +86,49 @@ export default function Messages() {
         html, body { background: #fff !important; height: 100%; }
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
-        .page { display: flex; flex-direction: column; height: 100vh; }
-        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-        .logo { font-size: 22px; font-weight: 700; color: #000; }
+        .page { display: flex; flex-direction: column; height: 100dvh; }
+        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        .logo { font-size: 20px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .chat-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 320px; border-right: 1px solid #e4e5e7; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid #e4e5e7; display: flex; align-items: center; gap: 10px; }
-        .sidebar-header h2 { font-size: 18px; font-weight: 700; }
+        .sidebar { width: 320px; border-right: 1px solid #e4e5e7; display: flex; flex-direction: column; flex-shrink: 0; background: #fff; }
+        .sidebar-header { padding: 16px 20px; border-bottom: 1px solid #e4e5e7; display: flex; align-items: center; gap: 10px; }
+        .sidebar-header h2 { font-size: 16px; font-weight: 700; }
         .conv-list { flex: 1; overflow-y: auto; }
-        .conv-item { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
+        .conv-item { padding: 14px 18px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background 0.15s; }
         .conv-item:hover { background: #f9f9f9; }
         .conv-item.active { background: #e8faf0; }
         .avatar { width: 44px; height: 44px; border-radius: 50%; background: #1dbf73; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0; }
         .conv-info { flex: 1; min-width: 0; }
         .conv-name { font-weight: 600; font-size: 14px; color: #404145; }
         .conv-preview { font-size: 12px; color: #74767e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-        .chat-header { padding: 16px 24px; border-bottom: 1px solid #e4e5e7; display: flex; align-items: center; gap: 12px; flex-shrink: 0; background: #fff; }
-        .chat-name { font-weight: 700; font-size: 16px; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #f9f9f9; position: relative; }
+        .chat-header { padding: 12px 20px; border-bottom: 1px solid #e4e5e7; display: flex; align-items: center; gap: 12px; flex-shrink: 0; background: #fff; }
+        .chat-name { font-weight: 700; font-size: 15px; }
         .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #1dbf73; }
-        .messages-list { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #f9f9f9; }
-        .message { max-width: 70%; }
-        .message.mine { align-self: flex-end; }
-        .message.theirs { align-self: flex-start; }
-        .bubble { padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+        .messages-list { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .message { max-width: 75%; display: flex; flex-direction: column; }
+        .message.mine { align-self: flex-end; align-items: flex-end; }
+        .message.theirs { align-self: flex-start; align-items: flex-start; }
+        .bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
         .mine .bubble { background: #1dbf73; color: #fff; border-bottom-right-radius: 4px; }
-        .theirs .bubble { background: #fff; color: #404145; border-bottom-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-        .msg-time { font-size: 11px; color: #b5b6b9; margin-top: 4px; text-align: right; }
-        .theirs .msg-time { text-align: left; }
-        .input-area { padding: 16px 24px; border-top: 1px solid #e4e5e7; display: flex; gap: 10px; align-items: center; flex-shrink: 0; background: #fff; }
-        .input-wrap { flex: 1; display: flex; align-items: center; background: #f5f5f5; border-radius: 24px; border: 1.5px solid #e4e5e7; padding: 4px 16px; transition: border-color 0.2s; }
+        .theirs .bubble { background: #fff; color: #404145; border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .msg-time { font-size: 11px; color: #b5b6b9; margin-top: 3px; }
+        .input-area { padding: 12px 16px; border-top: 1px solid #e4e5e7; display: flex; gap: 10px; align-items: flex-end; background: #fff; position: relative; z-index: 10; }
+        .input-wrap { flex: 1; display: flex; align-items: center; background: #f5f5f5; border-radius: 20px; border: 1.5px solid #e4e5e7; padding: 4px 14px; transition: border-color 0.2s; }
         .input-wrap:focus-within { border-color: #1dbf73; background: #fff; }
-        .input-wrap input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; padding: 8px 0; color: #404145; font-family: inherit; min-width: 0; }
-        .btn-send { width: 44px; height: 44px; border-radius: 50%; background: #1dbf73; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+        .input-wrap input { flex: 1; border: none; outline: none; font-size: 15px; background: transparent; padding: 10px 0; color: #404145; font-family: inherit; min-width: 0; -webkit-appearance: none; appearance: none; }
+        .btn-send { width: 40px; height: 40px; border-radius: 50%; background: #1dbf73; color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; margin-bottom: 2px; }
         .btn-send:hover { background: #0fa85c; }
         .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
-        .empty-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #74767e; gap: 16px; background: #f9f9f9; }
-        .empty-chat h3 { font-size: 18px; font-weight: 600; color: #404145; }
+        .empty-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #74767e; gap: 12px; background: #f9f9f9; }
+        .empty-chat h3 { font-size: 16px; font-weight: 600; color: #404145; }
         .empty-conv { padding: 40px 20px; text-align: center; color: #74767e; font-size: 14px; }
         @media (max-width: 768px) {
-          .sidebar { width: ${`var(--sidebar-width, 100%)`}; }
+          .sidebar { display: none; position: absolute; top: 56px; left: 0; width: 100%; height: calc(100dvh - 56px); z-index: 50; }
+          .sidebar.show { display: flex; }
+          .chat-area { width: 100%; }
+          .input-wrap input { font-size: 16px; }
         }
       `}</style>
 
@@ -141,9 +143,9 @@ export default function Messages() {
 
         <div className="chat-container">
           {/* SIDEBAR */}
-          <div className="sidebar" style={{display: selected ? "none" : "flex", flexDirection:"column"}}>
+          <div className={`sidebar ${!selected ? "show" : ""}`}>
             <div className="sidebar-header">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1dbf73" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               <h2>Mensagens</h2>
             </div>
             <div className="conv-list">
@@ -173,7 +175,7 @@ export default function Messages() {
           </div>
 
           {/* CHAT AREA */}
-          <div className="chat-area" style={{display: selected ? "flex" : "none", flexDirection:"column"}}>
+          <div className="chat-area">
             {selected && (
               <>
                 <div className="chat-header">
@@ -220,6 +222,7 @@ export default function Messages() {
                       autoComplete="off"
                       autoCorrect="off"
                       autoCapitalize="sentences"
+                      inputMode="text"
                     />
                   </div>
                   <button className="btn-send" disabled={!text.trim() || sending} onClick={sendMessage}>
