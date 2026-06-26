@@ -62,10 +62,24 @@ export default function AdminPanel() {
   const t = translations[lang];
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const u = localStorage.getItem("user");
-    if (!u) { router.push("/login"); return; }
+    
+    if (!token || !u) {
+      router.push("/admin/login");
+      return;
+    }
+    
     const parsed = JSON.parse(u);
-    if (parsed.email !== ADMIN_EMAIL) { router.push("/"); return; }
+    
+    // Verifica se é admin
+    if (parsed.email !== ADMIN_EMAIL || !parsed.is_admin) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.push("/admin/login");
+      return;
+    }
+    
     setUser(parsed);
     loadData();
     const saved = localStorage.getItem("adminDark");
@@ -270,7 +284,7 @@ export default function AdminPanel() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 {t.viewSite}
               </div>
-              <div className="nav-item" onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); router.push("/login"); }}>
+              <div className="nav-item" onClick={() => { localStorage.removeItem("token"); localStorage.removeItem("user"); router.push("/admin/login"); }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 {t.logout}
               </div>
