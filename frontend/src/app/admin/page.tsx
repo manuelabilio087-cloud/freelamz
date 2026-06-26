@@ -58,6 +58,7 @@ export default function AdminPanel() {
   const [newsletterMessage, setNewsletterMessage] = useState("");
   const [sendingNewsletter, setSendingNewsletter] = useState(false);
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [revenue, setRevenue] = useState<any>(null);
 
   const t = translations[lang];
 
@@ -104,6 +105,11 @@ export default function AdminPanel() {
   };
 
   const loadData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const rRes = await fetch(`${API_URL}/subscriptions/revenue`, { headers: { Authorization: `Bearer ${token}` } });
+      if (rRes.ok) { const rData = await rRes.json(); setRevenue(rData); }
+    } catch {}
     try {
       const token = localStorage.getItem("token");
       const [uRes, pRes] = await Promise.all([
@@ -271,6 +277,7 @@ export default function AdminPanel() {
                 {id:"projects", label:t.projects, icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>},
                 {id:"newsletter", label:t.newsletter, icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>},
                 {id:"notifications", label:t.notifications, icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>},
+                {id:"revenue", label:"Receita", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>},
               ].map(item => (
                 <div key={item.id} className={`nav-item ${activeTab === item.id ? "active" : ""}`} onClick={() => setActiveTab(item.id)}>
                   {item.icon} {item.label}
@@ -614,6 +621,38 @@ export default function AdminPanel() {
                       <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>{t.send}</>
                     )}
                   </button>
+                </div>
+              </div>
+            )}
+
+            {/* REVENUE */}
+            {activeTab === "revenue" && (
+              <div className="fade">
+                <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"20px",marginBottom:"24px"}}>
+                  {[
+                    {label:"Receita Total",value:`${revenue ? Number(revenue.total_revenue).toLocaleString() : 0} MT`,color:accent,bg:accentLight},
+                    {label:"Subscricoes Pro",value:`${revenue ? Number(revenue.subscription_revenue).toLocaleString() : 0} MT`,color:green,bg:greenLight},
+                    {label:"Comissoes (5%)",value:`${revenue ? Number(revenue.commission_revenue).toLocaleString() : 0} MT`,color:yellow,bg:yellowLight},
+                  ].map((s,i) => (
+                    <div key={i} className="stat-card">
+                      <div style={{fontSize:"13px",fontWeight:"600",color:textSub,marginBottom:"8px"}}>{s.label}</div>
+                      <div style={{fontSize:"28px",fontWeight:"800",color:s.color}}>{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:surface,border:`1px solid ${border}`,borderRadius:"16px",padding:"28px"}}>
+                  <div style={{fontWeight:"700",fontSize:"18px",color:text,marginBottom:"20px"}}>Resumo Financeiro</div>
+                  {[
+                    {label:"Utilizadores Pro activos",value:revenue?.active_pro_users || 0},
+                    {label:"Receita mensal (subscricoes)",value:`${revenue ? Number(revenue.monthly_revenue).toLocaleString() : 0} MT`},
+                    {label:"Taxa de comissao",value:"5% por transaccao"},
+                    {label:"Preco plano Pro",value:"200 MT / mes"},
+                  ].map((r,i) => (
+                    <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0",borderBottom:`1px solid ${border}`}}>
+                      <span style={{fontSize:"14px",color:textSub}}>{r.label}</span>
+                      <span style={{fontSize:"14px",fontWeight:"700",color:text}}>{r.value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
