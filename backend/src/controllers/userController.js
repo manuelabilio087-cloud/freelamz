@@ -45,7 +45,7 @@ const getFreelancers = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const users = await pool.query(
-      'SELECT id, name, email, role, bio, skills, location, avatar, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, name, email, role, bio, skills, avatar, created_at FROM users ORDER BY created_at DESC'
     );
     res.json(users.rows);
   } catch (err) {
