@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,7 +34,7 @@ export default function Projects() {
         html, body { background: #fff !important; }
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
-        .navbar { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 1px solid #e4e5e7; padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        
         .logo { font-size: 22px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .nav-links { display: flex; align-items: center; gap: 16px; font-size: 14px; }
@@ -68,7 +68,7 @@ export default function Projects() {
         .empty h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; color: #404145; }
         .loading { text-align: center; padding: 80px; color: #74767e; font-size: 16px; }
         @media (max-width: 768px) {
-          .navbar { padding: 12px 16px; }
+          
           .hero { padding: 32px 16px; }
           .hero h1 { font-size: 26px; }
           .search-bar { flex-direction: column; }
@@ -77,14 +77,7 @@ export default function Projects() {
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div className="nav-links">
-          <Link href="/projects">Projectos</Link>
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/projects/new"><button className="btn-primary">+ Publicar Projecto</button></Link>
-        </div>
-      </nav>
+      
 
       <div className="hero">
         <h1>Encontra o teu proximo projecto</h1>

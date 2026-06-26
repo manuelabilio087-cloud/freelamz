@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -103,7 +103,7 @@ function ReviewsContent() {
         html, body { background: #f5f5f5 !important; }
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .container { max-width: 800px; margin: 32px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 24px; }
@@ -139,19 +139,13 @@ function ReviewsContent() {
         .empty { text-align: center; padding: 48px; color: #74767e; }
         .login-prompt { text-align: center; padding: 24px; color: #74767e; }
         @media (max-width: 768px) {
-          .navbar { padding: 0 16px; }
+          
           .container { padding: 0 16px; margin: 20px auto; }
           .rating-summary { flex-direction: column; text-align: center; }
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div style={{display:"flex",gap:"16px",fontSize:"14px",color:"#74767e"}}>
-          <Link href="/freelancers">Freelancers</Link>
-          <Link href="/projects">Projectos</Link>
-        </div>
-      </nav>
+      
 
       <div className="container">
         <div className="card">

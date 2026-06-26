@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -65,7 +65,7 @@ export default function Dashboard() {
         html, body { background: #f5f6fa !important; }
         body { font-family: Inter, sans-serif; color: #1a1d27; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e8eaf0; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; color: #000; }
         .logo span { color: #6366f1; }
         .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
@@ -148,7 +148,7 @@ export default function Dashboard() {
         
         /* Responsive */
         @media (max-width: 768px) {
-          .navbar { padding: 0 16px; }
+          
           .container { padding: 20px 16px; }
           .welcome { flex-direction: column; gap: 16px; text-align: center; }
           .welcome::before { display: none; }
@@ -157,15 +157,7 @@ export default function Dashboard() {
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div className="nav-right">
-          <Link href="/projects" style={{color:"#6b7280"}}>Projectos</Link>
-          <Link href="/messages" style={{color:"#6b7280"}}>Mensagens</Link>
-          <button className="avatar-btn" onClick={() => router.push("/profile")}>{user?.name?.[0] || "U"}</button>
-          <button className="btn-logout" onClick={logout}>Sair</button>
-        </div>
-      </nav>
+      
 
       <div className="container">
         {/* Welcome Banner */}

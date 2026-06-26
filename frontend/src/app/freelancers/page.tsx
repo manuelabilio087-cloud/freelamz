@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
@@ -31,7 +31,7 @@ export default async function FreelancersPage() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Inter, sans-serif; background: #f5f6fa; color: #1a1d27; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e8eaf0; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; }
         .logo span { color: #6366f1; }
         .hero { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 64px 24px; text-align: center; color: #fff; }
@@ -55,17 +55,10 @@ export default async function FreelancersPage() {
         .empty { text-align: center; padding: 80px 24px; color: #6b7280; grid-column: 1 / -1; }
         .section-label { font-size: 14px; font-weight: 600; color: #6b7280; margin-bottom: 20px; }
         @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .navbar { padding: 0 16px; } .hero h1 { font-size: 26px; } }
+        @media (max-width: 600px) { .grid { grid-template-columns: 1fr; }  .hero h1 { font-size: 26px; } }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div style={{ display: "flex", gap: "20px", fontSize: "14px", color: "#6b7280" }}>
-          <Link href="/projects">Projectos</Link>
-          <Link href="/login">Entrar</Link>
-          <Link href="/register" style={{ background: "#6366f1", color: "#fff", padding: "8px 18px", borderRadius: "8px", fontWeight: "600" }}>Registar</Link>
-        </div>
-      </nav>
+      
 
       <div className="hero">
         <h1>Freelancers em Moçambique</h1>

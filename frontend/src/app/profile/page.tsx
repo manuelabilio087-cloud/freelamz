@@ -61,7 +61,7 @@ export default function Profile() {
         html, body { background: #f5f5f5 !important; }
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .nav-links { display: flex; align-items: center; gap: 20px; font-size: 14px; color: #74767e; }
@@ -109,19 +109,12 @@ export default function Profile() {
         .btn-change:hover { background: #f5f5f5; }
         @media (max-width: 768px) {
           .container { grid-template-columns: 1fr; }
-          .navbar { padding: 0 16px; }
+          
           .info-row { grid-template-columns: 1fr; }
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div className="nav-links">
-          <Link href="/dashboard">Dashboard</Link>
-          <Link href="/messages">Mensagens</Link>
-          <Link href="/projects">Projectos</Link>
-        </div>
-      </nav>
+      
 
       <div className="container">
         {/* SIDEBAR */}

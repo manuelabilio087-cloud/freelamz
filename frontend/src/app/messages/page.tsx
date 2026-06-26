@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -87,7 +87,7 @@ export default function Messages() {
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
         .page { display: flex; flex-direction: column; height: 100dvh; }
-        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+        
         .logo { font-size: 20px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .chat-container { display: flex; flex: 1; overflow: hidden; }
@@ -133,13 +133,7 @@ export default function Messages() {
       `}</style>
 
       <div className="page">
-        <nav className="navbar">
-          <Link href="/" className="logo">Freelamz<span>.</span></Link>
-          <div style={{display:"flex", gap:"16px", fontSize:"14px", color:"#74767e"}}>
-            <Link href="/projects">Projectos</Link>
-            <Link href={user?.role === "client" ? "/client-dashboard" : "/dashboard"}>Dashboard</Link>
-          </div>
-        </nav>
+        
 
         <div className="chat-container">
           {/* SIDEBAR */}

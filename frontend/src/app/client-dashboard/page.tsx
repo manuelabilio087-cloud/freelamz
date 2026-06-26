@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -44,7 +44,7 @@ export default function ClientDashboard() {
         html, body { background: #f5f5f5 !important; }
         body { font-family: Inter, sans-serif; color: #404145; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e4e5e7; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
         .nav-right { display: flex; align-items: center; gap: 20px; font-size: 14px; }
@@ -94,7 +94,7 @@ export default function ClientDashboard() {
         .skill-tag { background: #f0f0f0; color: #74767e; font-size: 11px; padding: 3px 8px; border-radius: 12px; }
         .btn-contact { width: 100%; padding: 10px; background: #1dbf73; color: #fff; border: none; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 13px; }
         @media (max-width: 768px) {
-          .navbar { padding: 0 16px; }
+          
           .container { padding: 20px 16px; }
           .welcome { flex-direction: column; gap: 16px; }
           .welcome-emoji { display: none; }
@@ -102,15 +102,7 @@ export default function ClientDashboard() {
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div className="nav-right">
-          <Link href="/projects" style={{color:"#74767e"}}>Projectos</Link>
-          <Link href="/messages" style={{color:"#74767e"}}>Mensagens</Link>
-          <button className="btn-primary" onClick={() => router.push("/projects/new")}>+ Publicar Projecto</button>
-          <button className="btn-logout" onClick={logout}>Sair</button>
-        </div>
-      </nav>
+      
 
       <div className="container">
         <div className="welcome">

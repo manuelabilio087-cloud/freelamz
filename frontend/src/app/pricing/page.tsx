@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -74,7 +74,7 @@ export default function Pricing() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Inter, sans-serif; background: #f5f6fa; color: #1a1d27; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e8eaf0; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; }
         .logo span { color: #6366f1; }
         .hero { text-align: center; padding: 64px 24px 40px; }
@@ -123,23 +123,12 @@ export default function Pricing() {
 
         @media (max-width: 640px) {
           .plans { grid-template-columns: 1fr; }
-          .navbar { padding: 0 16px; }
+          
           .hero h1 { font-size: 26px; }
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div style={{ display: "flex", gap: "20px", fontSize: "14px", color: "#6b7280" }}>
-          <Link href="/freelancers">Freelancers</Link>
-          <Link href="/projects">Projectos</Link>
-          {user ? (
-            <Link href={user.role === "client" ? "/client-dashboard" : "/dashboard"} style={{ background: "#6366f1", color: "#fff", padding: "8px 18px", borderRadius: "8px", fontWeight: "600" }}>Dashboard</Link>
-          ) : (
-            <Link href="/login" style={{ background: "#6366f1", color: "#fff", padding: "8px 18px", borderRadius: "8px", fontWeight: "600" }}>Entrar</Link>
-          )}
-        </div>
-      </nav>
+      
 
       <div className="hero">
         <h1>Planos e Preços</h1>

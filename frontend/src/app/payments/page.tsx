@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -93,7 +93,7 @@ export default function Payments() {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Inter, sans-serif; background: #f5f6fa; color: #1a1d27; }
         a { text-decoration: none; color: inherit; }
-        .navbar { background: #fff; border-bottom: 1px solid #e8eaf0; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        
         .logo { font-size: 22px; font-weight: 700; }
         .logo span { color: #6366f1; }
         .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
@@ -142,21 +142,14 @@ export default function Payments() {
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: 1fr; }
           .form-grid { grid-template-columns: 1fr; }
-          .navbar { padding: 0 16px; }
+          
           .container { padding: 20px 16px; }
           .payment-row { grid-template-columns: 1fr 1fr; gap: 8px; }
           .payment-header { display: none; }
         }
       `}</style>
 
-      <nav className="navbar">
-        <Link href="/" className="logo">Freelamz<span>.</span></Link>
-        <div style={{ display: "flex", alignItems: "center", gap: "20px", fontSize: "14px" }}>
-          <Link href="/contracts" style={{ color: "#6b7280" }}>Contratos</Link>
-          <Link href="/messages" style={{ color: "#6b7280" }}>Mensagens</Link>
-          <Link href={user?.role === "client" ? "/client-dashboard" : "/dashboard"} style={{ color: "#6b7280" }}>Dashboard</Link>
-        </div>
-      </nav>
+      
 
       <div className="container">
         <div className="page-header">
