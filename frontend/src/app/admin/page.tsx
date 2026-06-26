@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 const ADMIN_EMAIL = "manuelabilio087@gmail.com";
@@ -60,6 +59,20 @@ export default function AdminPanel() {
     } catch {}
   };
 
+  const toggleVerify = async (id: number, current: boolean) => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/users/verify/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ verified: !current }),
+      });
+      if (res.ok) {
+        setUsers(u => u.map(x => x.id === id ? { ...x, verified: !current } : x));
+      }
+    } catch {}
+  };
+
   const deleteProject = async (id: number) => {
     if (!confirm("Tens a certeza que queres remover este projecto?")) return;
     try {
@@ -83,6 +96,7 @@ export default function AdminPanel() {
   const red = "#ef4444";
   const redLight = d ? "#2d1515" : "#fef2f2";
   const yellow = "#f59e0b";
+  const yellowLight = d ? "#2d1f00" : "#fffbeb";
 
   const filteredUsers = users.filter(u =>
     u.name?.toLowerCase().includes(searchUser.toLowerCase()) ||
@@ -94,6 +108,13 @@ export default function AdminPanel() {
 
   const freelancers = users.filter(u => u.role === "freelancer");
   const clients = users.filter(u => u.role === "client");
+  const verifiedCount = freelancers.filter(u => u.verified).length;
+  const pendingCount = freelancers.length - verifiedCount;
+
+  // Dados para gráficos
+  const totalUsers = users.length || 1;
+  const freelancerPct = Math.round((freelancers.length / totalUsers) * 100);
+  const clientPct = Math.round((clients.length / totalUsers) * 100);
 
   if (loading) return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh",background:bg,color:text,fontFamily:"Inter,sans-serif",flexDirection:"column",gap:"16px"}}>
@@ -125,6 +146,8 @@ export default function AdminPanel() {
         .btn { padding:8px 16px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
         .btn-primary { background:${accent}; color:#fff; }
         .btn-primary:hover { opacity:0.9; }
+        .btn-success { background:${greenLight}; color:${green}; }
+        .btn-success:hover { background:${green}; color:#fff; }
         .btn-danger { background:${redLight}; color:${red}; }
         .btn-danger:hover { background:${red}; color:#fff; }
         .search-input { width:100%; padding:10px 16px 10px 40px; border:1px solid ${border}; border-radius:10px; font-size:14px; outline:none; background:${surface2}; color:${text}; font-family:inherit; }
@@ -175,7 +198,6 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            {/* DARK MODE TOGGLE */}
             <div style={{borderTop:`1px solid ${border}`,paddingTop:"16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
               <div style={{display:"flex",alignItems:"center",gap:"8px",fontSize:"13px",color:textSub}}>
                 {darkMode ? (
@@ -225,11 +247,12 @@ export default function AdminPanel() {
             {/* OVERVIEW */}
             {activeTab === "overview" && (
               <div className="fade">
+                {/* STATS CARDS */}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"20px",marginBottom:"32px"}}>
                   {[
                     {label:"Total Utilizadores", value:users.length, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>, color:accent, bg:accentLight},
                     {label:"Freelancers", value:freelancers.length, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={green} strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>, color:green, bg:greenLight},
-                    {label:"Clientes", value:clients.length, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={yellow} strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, color:yellow, bg: d ? "#2d1f00" : "#fffbeb"},
+                    {label:"Clientes", value:clients.length, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={yellow} strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>, color:yellow, bg:yellowLight},
                     {label:"Projectos", value:projects.length, icon:<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={red} strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>, color:red, bg:redLight},
                   ].map((s,i) => (
                     <div key={i} className="stat-card">
@@ -242,7 +265,66 @@ export default function AdminPanel() {
                   ))}
                 </div>
 
-                {/* ULTIMOS UTILIZADORES */}
+                {/* GRÁFICOS */}
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px",marginBottom:"32px"}}>
+                  {/* Gráfico de Barras */}
+                  <div style={{background:surface,border:`1px solid ${border}`,borderRadius:"16px",padding:"24px"}}>
+                    <div style={{fontWeight:"700",fontSize:"15px",color:text,marginBottom:"20px"}}>Distribuição de Utilizadores</div>
+                    <div style={{display:"flex",alignItems:"flex-end",gap:"24px",height:"160px",padding:"0 16px"}}>
+                      {/* Barra Freelancers */}
+                      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}}>
+                        <div style={{fontSize:"13px",fontWeight:"700",color:green}}>{freelancers.length}</div>
+                        <div style={{width:"60px",background:green,borderRadius:"8px 8px 0 0",transition:"height 0.5s ease",height:`${Math.max(freelancerPct * 1.2, 20)}px`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px"}}>
+                          <span style={{color:"#fff",fontSize:"11px",fontWeight:"700"}}>{freelancerPct}%</span>
+                        </div>
+                        <div style={{fontSize:"12px",color:textSub,fontWeight:"600"}}>Freelancers</div>
+                      </div>
+                      {/* Barra Clientes */}
+                      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}}>
+                        <div style={{fontSize:"13px",fontWeight:"700",color:accent}}>{clients.length}</div>
+                        <div style={{width:"60px",background:accent,borderRadius:"8px 8px 0 0",transition:"height 0.5s ease",height:`${Math.max(clientPct * 1.2, 20)}px`,display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:"8px"}}>
+                          <span style={{color:"#fff",fontSize:"11px",fontWeight:"700"}}>{clientPct}%</span>
+                        </div>
+                        <div style={{fontSize:"12px",color:textSub,fontWeight:"600"}}>Clientes</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Gráfico de Pizza - Verificação */}
+                  <div style={{background:surface,border:`1px solid ${border}`,borderRadius:"16px",padding:"24px"}}>
+                    <div style={{fontWeight:"700",fontSize:"15px",color:text,marginBottom:"20px"}}>Verificação de Freelancers</div>
+                    <div style={{display:"flex",alignItems:"center",gap:"32px"}}>
+                      <svg width="140" height="140" viewBox="0 0 140 140">
+                        <circle cx="70" cy="70" r="60" fill="none" stroke={surface2} strokeWidth="20"/>
+                        {freelancers.length > 0 && (
+                          <>
+                            <circle cx="70" cy="70" r="60" fill="none" stroke={green} strokeWidth="20"
+                              strokeDasharray={`${(verifiedCount / freelancers.length) * 377} ${377}`}
+                              strokeDashoffset="0" transform="rotate(-90 70 70)" strokeLinecap="round"/>
+                            <circle cx="70" cy="70" r="60" fill="none" stroke={yellow} strokeWidth="20"
+                              strokeDasharray={`${(pendingCount / freelancers.length) * 377} ${377}`}
+                              strokeDashoffset={`${-(verifiedCount / freelancers.length) * 377}`}
+                              transform="rotate(-90 70 70)" strokeLinecap="round"/>
+                          </>
+                        )}
+                        <text x="70" y="70" textAnchor="middle" dominantBaseline="middle" fill={text} fontSize="24" fontWeight="700">{freelancers.length}</text>
+                        <text x="70" y="88" textAnchor="middle" dominantBaseline="middle" fill={textSub} fontSize="11">Total</text>
+                      </svg>
+                      <div style={{display:"flex",flexDirection:"column",gap:"12px"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                          <div style={{width:"12px",height:"12px",borderRadius:"3px",background:green}}></div>
+                          <span style={{fontSize:"13px",color:text}}>Verificados ({verifiedCount})</span>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:"8px"}}>
+                          <div style={{width:"12px",height:"12px",borderRadius:"3px",background:yellow}}></div>
+                          <span style={{fontSize:"13px",color:text}}>Pendentes ({pendingCount})</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ULTIMOS */}
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"20px"}}>
                   <div style={{background:surface,border:`1px solid ${border}`,borderRadius:"16px",overflow:"hidden"}}>
                     <div style={{padding:"20px 24px",borderBottom:`1px solid ${border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
@@ -257,6 +339,12 @@ export default function AdminPanel() {
                           <div style={{fontSize:"12px",color:textSub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</div>
                         </div>
                         <span className="badge" style={{background:u.role==="freelancer"?greenLight:accentLight,color:u.role==="freelancer"?green:accent}}>{u.role}</span>
+                        {u.role === "freelancer" && u.verified && (
+                          <span className="badge" style={{background:greenLight,color:green,display:"flex",alignItems:"center",gap:"4px"}}>
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            Verificado
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -294,18 +382,44 @@ export default function AdminPanel() {
                       <input className="search-input" placeholder="Pesquisar utilizador..." value={searchUser} onChange={e => setSearchUser(e.target.value)} />
                     </div>
                   </div>
-                  <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr",padding:"12px 20px",background:surface2,fontSize:"12px",fontWeight:"600",color:textSub,textTransform:"uppercase",letterSpacing:"0.5px"}}>
-                    <span>Utilizador</span><span>Email</span><span>Tipo</span><span>Acções</span>
+                  <div style={{display:"grid",gridTemplateColumns:"2fr 2fr 1fr 1fr 1fr",padding:"12px 20px",background:surface2,fontSize:"12px",fontWeight:"600",color:textSub,textTransform:"uppercase",letterSpacing:"0.5px"}}>
+                    <span>Utilizador</span><span>Email</span><span>Tipo</span><span>Estado</span><span>Acções</span>
                   </div>
                   {filteredUsers.map((u,i) => (
-                    <div key={i} className="table-row" style={{gridTemplateColumns:"2fr 2fr 1fr 1fr"}}>
+                    <div key={i} className="table-row" style={{gridTemplateColumns:"2fr 2fr 1fr 1fr 1fr"}}>
                       <div style={{display:"flex",alignItems:"center",gap:"10px"}}>
                         <div style={{width:"32px",height:"32px",borderRadius:"50%",background:`linear-gradient(135deg, ${accent}, #8b5cf6)`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:"700",fontSize:"13px",flexShrink:0}}>{u.name?.[0]}</div>
                         <span style={{fontWeight:"600",fontSize:"14px",color:text}}>{u.name}</span>
                       </div>
                       <span style={{fontSize:"13px",color:textSub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</span>
                       <span className="badge" style={{background:u.role==="freelancer"?greenLight:accentLight,color:u.role==="freelancer"?green:accent,width:"fit-content"}}>{u.role || "—"}</span>
+                      <div>
+                        {u.role === "freelancer" ? (
+                          u.verified ? (
+                            <span className="badge" style={{background:greenLight,color:green,display:"flex",alignItems:"center",gap:"4px",width:"fit-content"}}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                              Verificado
+                            </span>
+                          ) : (
+                            <span className="badge" style={{background:yellowLight,color:yellow,width:"fit-content"}}>Pendente</span>
+                          )
+                        ) : (
+                          <span style={{fontSize:"12px",color:textSub}}>—</span>
+                        )}
+                      </div>
                       <div style={{display:"flex",gap:"8px"}}>
+                        {u.role === "freelancer" && (
+                          <button className={`btn ${u.verified ? "btn-danger" : "btn-success"}`} style={{padding:"6px 10px",fontSize:"12px"}} onClick={() => toggleVerify(u.id, u.verified)}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              {u.verified ? (
+                                <><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>
+                              ) : (
+                                <><polyline points="20 6 9 17 4 12"/></>
+                              )}
+                            </svg>
+                            {u.verified ? "Remover" : "Verificar"}
+                          </button>
+                        )}
                         <button className="btn btn-danger" style={{padding:"6px 10px",fontSize:"12px"}} onClick={() => deleteUser(u.id)}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                           Remover
