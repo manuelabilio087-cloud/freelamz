@@ -1,11 +1,18 @@
 ﻿const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const pool = require('../config/db');
 require('dotenv').config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  }
+});
+
 const emailCodes = new Map();
 
 const register = async (req, res) => {
@@ -58,39 +65,27 @@ const login = async (req, res) => {
 const googleLogin = async (req, res) => {
   const { email, name, google_id, avatar } = req.body;
   try {
-    // Verifica se já existe
     let user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-
     if (user.rows.length === 0) {
-      // Cria novo utilizador com Google
       const newUser = await pool.query(
         'INSERT INTO users (name, email, password, role, avatar, google_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email, role, avatar',
         [name, email, crypto.randomBytes(16).toString('hex'), 'freelancer', avatar || '', google_id]
       );
       user = newUser;
     } else {
-      // Actualiza google_id e avatar se necessário
       await pool.query(
         'UPDATE users SET google_id = $1, avatar = COALESCE(NULLIF(avatar, \'\'), $2) WHERE email = $3',
         [google_id, avatar || '', email]
       );
       user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     }
-
     const token = jwt.sign(
       { id: user.rows[0].id, role: user.rows[0].role },
       process.env.JWT_SECRET || 'freelamz_secret_key_2024',
       { expiresIn: '7d' }
     );
-
     res.json({
-      user: {
-        id: user.rows[0].id,
-        name: user.rows[0].name,
-        email: user.rows[0].email,
-        role: user.rows[0].role,
-        avatar: user.rows[0].avatar
-      },
+      user: { id: user.rows[0].id, name: user.rows[0].name, email: user.rows[0].email, role: user.rows[0].role, avatar: user.rows[0].avatar },
       token
     });
   } catch (err) {
@@ -114,16 +109,19 @@ const forgotPassword = async (req, res) => {
     );
     const resetUrl = `https://freelamz-frontend.vercel.app/reset-password?token=${token}`;
     try {
-      await resend.emails.send({
-        from: 'Freelamz <onboarding@resend.dev>',
+      await transporter.sendMail({
+        from: `"Freelamz" <${process.env.GMAIL_USER}>`,
         to: email,
         subject: 'Recuperacao de senha - Freelamz',
-        html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <h2 style="color: #1dbf73;">Recuperacao de senha</h2>
-          <p>Clique no botao abaixo para redefinir a sua senha:</p>
-          <a href="${resetUrl}" style="display: inline-block; background: #1dbf73; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0;">Redefinir senha</a>
-          <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
-        </div>`
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: #1dbf73;">Recuperacao de senha</h2>
+            <p>Ola,</p>
+            <p>Recebemos um pedido para redefinir a senha da sua conta Freelamz.</p>
+            <a href="${resetUrl}" style="display: inline-block; background: #1dbf73; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 16px 0;">Redefinir senha</a>
+            <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+          </div>
+        `
       });
     } catch (emailErr) {
       console.error('Erro ao enviar email:', emailErr);
@@ -164,20 +162,25 @@ const sendEmailCode = async (req, res) => {
   try {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     emailCodes.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
-    await resend.emails.send({
-      from: 'Freelamz <onboarding@resend.dev>',
+    await transporter.sendMail({
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: 'Codigo de verificacao - Freelamz',
-      html: `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-        <h2 style="color: #1dbf73;">Verifica a tua conta</h2>
-        <h1 style="font-size: 36px; letter-spacing: 8px; color: #404145; margin: 24px 0;">${code}</h1>
-        <p style="color: #74767e; font-size: 13px;">Valido por 10 minutos.</p>
-      </div>`
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <h2 style="color: #1dbf73;">Verifica a tua conta</h2>
+          <p>O teu codigo de verificacao e:</p>
+          <h1 style="font-size: 36px; letter-spacing: 8px; color: #404145; margin: 24px 0;">${code}</h1>
+          <p style="color: #74767e; font-size: 13px;">Valido por 10 minutos. Nao partilhes este codigo.</p>
+          <p style="font-size: 12px; color: #74767e;">Freelamz - A plataforma freelance de Mocambique</p>
+        </div>
+      `
     });
+    console.log(`Codigo para ${email}: ${code}`);
     res.json({ message: 'Codigo enviado', success: true });
   } catch (err) {
     console.error('Erro ao enviar codigo:', err);
-    res.status(500).json({ message: 'Erro ao enviar email' });
+    res.status(500).json({ message: 'Erro ao enviar email', error: err.message });
   }
 };
 
