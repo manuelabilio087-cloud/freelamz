@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import NotificationToast from "@/components/NotificationToast";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,9 +16,7 @@ export const metadata: Metadata = {
     statusBarStyle: "default",
     title: "Freelamz",
   },
-  formatDetection: {
-    telephone: false,
-  },
+  formatDetection: { telephone: false },
   openGraph: {
     type: "website",
     title: "Freelamz",
@@ -62,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className={inter.className}>
         <GoogleOAuthProvider clientId="916098882078-aiavc6pl9nktkkdq26d5dvic4mfr73m6.apps.googleusercontent.com">
+          <Navbar />
           {children}
           <NotificationToast />
         </GoogleOAuthProvider>
