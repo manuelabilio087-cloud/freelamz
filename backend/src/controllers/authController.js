@@ -112,6 +112,30 @@ const adminLogin = async (req, res) => {
   }
 };
 
+const setAdminPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+  const ADMIN_EMAIL = 'manuelabilio087@gmail.com';
+  
+  try {
+    if (email !== ADMIN_EMAIL) {
+      return res.status(403).json({ message: 'Acesso negado.' });
+    }
+    
+    const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: 'Utilizador nao encontrado.' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = $1, is_admin = true WHERE email = $2', [hashedPassword, email]);
+    
+    res.json({ message: 'Senha de admin definida com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao definir senha de admin:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+};
+
 const googleLogin = async (req, res) => {
   const { email, name, google_id, avatar } = req.body;
   try {
@@ -252,4 +276,4 @@ const verifyEmailCode = async (req, res) => {
   }
 };
 
-module.exports = { register, login, adminLogin, googleLogin, forgotPassword, resetPassword, sendEmailCode, verifyEmailCode };
+module.exports = { register, login, adminLogin, setAdminPassword, googleLogin, forgotPassword, resetPassword, sendEmailCode, verifyEmailCode };
