@@ -40,7 +40,7 @@ export default function AdminPanel() {
     try {
       const token = localStorage.getItem("token");
       const [uRes, pRes] = await Promise.all([
-        fetch(`${API_URL}/users/freelancers`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/users/all`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const uData = await uRes.json();
@@ -49,6 +49,15 @@ export default function AdminPanel() {
       setProjects(Array.isArray(pData) ? pData : []);
     } catch {}
     setLoading(false);
+  };
+
+  const deleteUser = async (id: number) => {
+    if (!confirm("Tens a certeza que queres remover este utilizador?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/users/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      setUsers(u => u.filter(x => x.id !== id));
+    } catch {}
   };
 
   const deleteProject = async (id: number) => {
@@ -297,7 +306,7 @@ export default function AdminPanel() {
                       <span style={{fontSize:"13px",color:textSub,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.email}</span>
                       <span className="badge" style={{background:u.role==="freelancer"?greenLight:accentLight,color:u.role==="freelancer"?green:accent,width:"fit-content"}}>{u.role || "—"}</span>
                       <div style={{display:"flex",gap:"8px"}}>
-                        <button className="btn btn-danger" style={{padding:"6px 10px",fontSize:"12px"}}>
+                        <button className="btn btn-danger" style={{padding:"6px 10px",fontSize:"12px"}} onClick={() => deleteUser(u.id)}>
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
                           Remover
                         </button>
