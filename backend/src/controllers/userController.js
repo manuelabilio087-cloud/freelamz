@@ -132,4 +132,65 @@ const sendNewsletter = async (req, res) => {
   }
 };
 
-module.exports = { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser, verifyFreelancer, sendNewsletter };
+const getFreelancerStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Total de propostas enviadas
+    const proposalsRes = await pool.query(
+      'SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1',
+      [userId]
+    );
+    
+    // Propostas aceites
+    const acceptedRes = await pool.query(
+      'SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = $2',
+      [userId, 'accepted']
+    );
+    
+    // Projectos em andamento
+    const ongoingRes = await pool.query(
+      'SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
+      [userId, 'in_progress']
+    );
+    
+    // Projectos concluídos
+    const completedRes = await pool.query(
+      'SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
+      [userId, 'completed']
+    );
+    
+    // Total ganho
+    const earningsRes = await pool.query(
+      'SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = $2',
+      [userId, 'completed']
+    );
+    
+    // Avaliação média
+    const ratingRes = await pool.query(
+      'SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1',
+      [userId]
+    );
+    
+    // Mensagens não lidas
+    const unreadRes = await pool.query(
+      'SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false',
+      [userId]
+    );
+    
+    res.json({
+      proposals: parseInt(proposalsRes.rows[0].total),
+      accepted: parseInt(acceptedRes.rows[0].total),
+      ongoing: parseInt(ongoingRes.rows[0].total),
+      completed: parseInt(completedRes.rows[0].total),
+      earnings: parseInt(earningsRes.rows[0].total),
+      rating: parseFloat(ratingRes.rows[0].avg).toFixed(1),
+      unreadMessages: parseInt(unreadRes.rows[0].total)
+    });
+  } catch (err) {
+    console.error('Erro ao buscar estatisticas:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+};
+
+module.exports = { getProfile, updateProfile, getFreelancers, getAllUsers, deleteUser, verifyFreelancer, sendNewsletter, getFreelancerStats };
