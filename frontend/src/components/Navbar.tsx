@@ -1,6 +1,5 @@
 ﻿"use client";
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
@@ -25,7 +24,7 @@ export default function Navbar() {
       zIndex: 100,
     }}>
       <Link href="/" style={{ display: "flex", alignItems: "center" }}>
-        <Image src="/logo.svg" alt="Freelamz" width={140} height={35} priority />
+        <img src="/logo.svg" alt="Freelamz" width={140} height={35} />
       </Link>
       <div style={{ display: "flex", gap: "20px", fontSize: "14px", alignItems: "center" }}>
         <Link href="/freelancers" style={{ color: "#6b7280" }}>Freelancers</Link>
