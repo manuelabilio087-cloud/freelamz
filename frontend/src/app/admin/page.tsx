@@ -59,6 +59,7 @@ export default function AdminPanel() {
   const [sendingNewsletter, setSendingNewsletter] = useState(false);
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [revenue, setRevenue] = useState<any>(null);
+  const [disputes, setDisputes] = useState<any[]>([]);
 
   const t = translations[lang];
 
@@ -109,6 +110,8 @@ export default function AdminPanel() {
       const token = localStorage.getItem("token");
       const rRes = await fetch(`${API_URL}/subscriptions/revenue`, { headers: { Authorization: `Bearer ${token}` } });
       if (rRes.ok) { const rData = await rRes.json(); setRevenue(rData); }
+      const dRes = await fetch(`${API_URL}/disputes/all`, { headers: { Authorization: `Bearer ${token}` } });
+      if (dRes.ok) { const dData = await dRes.json(); setDisputes(Array.isArray(dData) ? dData : []); }
     } catch {}
     try {
       const token = localStorage.getItem("token");
@@ -278,6 +281,7 @@ export default function AdminPanel() {
                 {id:"newsletter", label:t.newsletter, icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>},
                 {id:"notifications", label:t.notifications, icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>},
                 {id:"revenue", label:"Receita", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>},
+                {id:"disputes", label:"Disputas", icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>},
               ].map(item => (
                 <div key={item.id} className={`nav-item ${activeTab === item.id ? "active" : ""}`} onClick={() => setActiveTab(item.id)}>
                   {item.icon} {item.label}
@@ -651,6 +655,55 @@ export default function AdminPanel() {
                     <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0",borderBottom:`1px solid ${border}`}}>
                       <span style={{fontSize:"14px",color:textSub}}>{r.label}</span>
                       <span style={{fontSize:"14px",fontWeight:"700",color:text}}>{r.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* DISPUTES */}
+            {activeTab === "disputes" && (
+              <div className="fade">
+                <div style={{background:surface,border:`1px solid ${border}`,borderRadius:"16px",overflow:"hidden"}}>
+                  <div style={{padding:"24px 28px",borderBottom:`1px solid ${border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div style={{fontWeight:"700",fontSize:"20px",color:text}}>Disputas</div>
+                    <span style={{background:redLight,color:red,padding:"4px 12px",borderRadius:"20px",fontSize:"12px",fontWeight:"700"}}>{disputes.filter(d=>d.status==="open").length} abertas</span>
+                  </div>
+                  {disputes.length === 0 ? (
+                    <div style={{padding:"48px",textAlign:"center",color:textSub}}>Nenhuma disputa encontrada.</div>
+                  ) : disputes.map((d,i) => (
+                    <div key={i} style={{padding:"20px 28px",borderBottom:`1px solid ${border}`,display:"grid",gridTemplateColumns:"2fr 1fr 1fr 1fr",alignItems:"center",gap:"12px"}}>
+                      <div>
+                        <div style={{fontWeight:"700",fontSize:"14px",color:text,marginBottom:"4px"}}>{d.project_title || `Contrato #${d.contract_id}`}</div>
+                        <div style={{fontSize:"12px",color:accent,fontWeight:"600",marginBottom:"4px"}}>{d.reason}</div>
+                        <div style={{fontSize:"12px",color:textSub}}>{d.description?.substring(0,80)}...</div>
+                      </div>
+                      <div style={{fontSize:"13px",color:textSub}}>
+                        <div>{d.opened_by_name}</div>
+                        <div style={{fontSize:"11px"}}>{new Date(d.created_at).toLocaleDateString("pt-PT")}</div>
+                      </div>
+                      <span style={{
+                        padding:"4px 10px",borderRadius:"20px",fontSize:"12px",fontWeight:"600",width:"fit-content",
+                        background:d.status==="open"?yellowLight:d.status==="resolved"?greenLight:surface2,
+                        color:d.status==="open"?yellow:d.status==="resolved"?green:textSub
+                      }}>{d.status==="open"?"Aberta":d.status==="resolved"?"Resolvida":"Fechada"}</span>
+                      {d.status === "open" && (
+                        <button className="btn btn-success" style={{fontSize:"12px",padding:"6px 12px"}} onClick={async () => {
+                          const resolution = prompt("Escreve a resolucao desta disputa:");
+                          if (!resolution) return;
+                          try {
+                            const token = localStorage.getItem("token");
+                            const res = await fetch(`${API_URL}/disputes/${d.id}/resolve`, {
+                              method: "PUT",
+                              headers: {"Content-Type":"application/json", Authorization:`Bearer ${token}`},
+                              body: JSON.stringify({ resolution, status: "resolved" }),
+                            });
+                            if (res.ok) { setDisputes(prev => prev.map(x => x.id === d.id ? {...x, status:"resolved", resolution} : x)); }
+                          } catch {}
+                        }}>
+                          Resolver
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
