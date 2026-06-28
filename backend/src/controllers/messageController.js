@@ -1,166 +1,110 @@
-﻿const nodemailer = require('nodemailer');
+﻿const pool = require('../config/db');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
-
-const emailTemplate = (content) => `
-  <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;background:#f5f6fa;padding:24px;">
-    <div style="background:#fff;border-radius:16px;padding:32px;">
-      <div style="text-align:center;margin-bottom:28px;">
-        <h1 style="font-size:24px;font-weight:800;color:#1a1d27;">Freelamz<span style="color:#6366f1;">.</span></h1>
-        <p style="color:#6b7280;font-size:13px;margin-top:4px;">A plataforma de freelancers de Mocambique</p>
-      </div>
-      ${content}
-      <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e8eaf0;text-align:center;color:#8b90a7;font-size:12px;">
-         2025 Freelamz  Mocambique  <a href="https://freelamz-frontend.vercel.app" style="color:#6366f1;">freelamz.co.mz</a>
-      </div>
-    </div>
-  </div>
-`;
-
-// Email de boas-vindas
-const sendWelcomeEmail = async (user) => {
-  const isFreelancer = user.role === 'freelancer';
-  const content = `
-    <h2 style="font-size:20px;font-weight:700;color:#1a1d27;margin-bottom:8px;">Bem-vindo ao Freelamz, ${user.name}! </h2>
-    <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:20px;">
-      ${isFreelancer
-        ? 'A tua conta de freelancer foi criada com sucesso. Ja podes criar o teu perfil e comecar a receber propostas de trabalho.'
-        : 'A tua conta foi criada com sucesso. Ja podes publicar projectos e contratar os melhores freelancers de Mocambique.'
-      }
-    </p>
-    <a href="https://freelamz-frontend.vercel.app/${isFreelancer ? 'dashboard' : 'client-dashboard'}" 
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-      ${isFreelancer ? 'Ir para o meu perfil' : 'Publicar primeiro projecto'}
-    </a>
-  `;
+const sendMessage = async (req, res) => {
+  const { receiver_id, content } = req.body;
   try {
-    await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-      to: user.email,
-      subject: `Bem-vindo ao Freelamz, ${user.name}! `,
-      html: emailTemplate(content),
-    });
-    console.log(`Email de boas-vindas enviado para ${user.email}`);
+    const result = await pool.query(
+      `INSERT INTO messages (sender_id, receiver_id, content) 
+       VALUES ($1, $2, $3) RETURNING *`,
+      [req.user.id, receiver_id, content]
+    );
+
+    const messageWithSender = await pool.query(
+      `SELECT m.*, u.name as sender_name, u.avatar as sender_avatar 
+       FROM messages m 
+       JOIN users u ON m.sender_id = u.id 
+       WHERE m.id = $1`,
+      [result.rows[0].id]
+    );
+
+    const message = messageWithSender.rows[0];
+
+    // Emite via Socket.io em tempo real
+    const io = req.app.get('io');
+    if (io) {
+      io.emit(`message:${receiver_id}`, message);
+      io.emit(`notification:${receiver_id}`, {
+        type: 'message',
+        title: 'Nova mensagem!',
+        body: `${message.sender_name}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+        url: '/messages',
+      });
+    }
+
+    res.status(201).json(message);
   } catch (err) {
-    console.error('Erro ao enviar email de boas-vindas:', err.message);
+    console.error('Erro ao enviar mensagem:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
 };
 
-// Email de nova proposta (para o cliente)
-const sendProposalEmail = async (client, freelancer, project) => {
-  const content = `
-    <h2 style="font-size:20px;font-weight:700;color:#1a1d27;margin-bottom:8px;">Nova proposta recebida! </h2>
-    <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:16px;">
-      <strong>${freelancer.name}</strong> enviou uma proposta para o teu projecto <strong>"${project.title}"</strong>.
-    </p>
-    <div style="background:#f5f6fa;border-radius:12px;padding:20px;margin-bottom:20px;">
-      <p style="color:#1a1d27;font-size:14px;font-weight:600;margin-bottom:4px;">Freelancer</p>
-      <p style="color:#6b7280;font-size:14px;">${freelancer.name}</p>
-    </div>
-    <a href="https://freelamz-frontend.vercel.app/client-dashboard" 
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-      Ver proposta
-    </a>
-  `;
+const getMessages = async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-      to: client.email,
-      subject: `Nova proposta de ${freelancer.name}  Freelamz`,
-      html: emailTemplate(content),
-    });
-    console.log(`Email de proposta enviado para ${client.email}`);
+    const result = await pool.query(
+      `SELECT m.*, u.name as sender_name, u.avatar as sender_avatar
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE (m.sender_id = $1 AND m.receiver_id = $2) 
+          OR (m.sender_id = $2 AND m.receiver_id = $1)
+       ORDER BY m.created_at ASC`,
+      [req.user.id, req.params.userId]
+    );
+
+    // Marca mensagens como lidas
+    await pool.query(
+      `UPDATE messages SET is_read = true 
+       WHERE receiver_id = $1 AND sender_id = $2 AND is_read = false`,
+      [req.user.id, req.params.userId]
+    );
+
+    res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao enviar email de proposta:', err.message);
+    console.error('Erro ao buscar mensagens:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
 };
 
-// Email de proposta aceite (para o freelancer)
-const sendProposalAcceptedEmail = async (freelancer, project) => {
-  const content = `
-    <h2 style="font-size:20px;font-weight:700;color:#1a1d27;margin-bottom:8px;">A tua proposta foi aceite! </h2>
-    <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:16px;">
-      Parabens! A tua proposta para o projecto <strong>"${project.title}"</strong> foi aceite.
-    </p>
-    <div style="background:#ecfdf5;border-radius:12px;padding:20px;margin-bottom:20px;border-left:4px solid #10b981;">
-      <p style="color:#10b981;font-size:14px;font-weight:700;">Proximo passo: aguarda o contrato do cliente.</p>
-    </div>
-    <a href="https://freelamz-frontend.vercel.app/dashboard" 
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-      Ver dashboard
-    </a>
-  `;
+const getConversations = async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-      to: freelancer.email,
-      subject: `Proposta aceite  ${project.title} `,
-      html: emailTemplate(content),
-    });
-    console.log(`Email de proposta aceite enviado para ${freelancer.email}`);
+    const result = await pool.query(
+      `SELECT DISTINCT ON (other_user.id)
+        other_user.id,
+        other_user.name,
+        other_user.avatar,
+        m.content as last_message,
+        m.created_at,
+        COUNT(unread.id) as unread_count
+       FROM messages m
+       JOIN users other_user ON (
+         CASE WHEN m.sender_id = $1 THEN m.receiver_id ELSE m.sender_id END
+       ) = other_user.id
+       LEFT JOIN messages unread ON unread.receiver_id = $1 
+         AND unread.sender_id = other_user.id 
+         AND unread.is_read = false
+       WHERE m.sender_id = $1 OR m.receiver_id = $1
+       GROUP BY other_user.id, other_user.name, other_user.avatar, m.content, m.created_at
+       ORDER BY other_user.id, m.created_at DESC`,
+      [req.user.id]
+    );
+    res.json(result.rows);
   } catch (err) {
-    console.error('Erro ao enviar email de proposta aceite:', err.message);
+    console.error('Erro ao buscar conversas:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
 };
 
-// Email de nova mensagem
-const sendMessageEmail = async (receiver, sender) => {
-  const content = `
-    <h2 style="font-size:20px;font-weight:700;color:#1a1d27;margin-bottom:8px;">Nova mensagem de ${sender.name} </h2>
-    <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:20px;">
-      Tens uma nova mensagem no Freelamz. Entra na plataforma para responder.
-    </p>
-    <a href="https://freelamz-frontend.vercel.app/messages" 
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-      Ver mensagem
-    </a>
-  `;
+const getUnreadCount = async (req, res) => {
   try {
-    await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-      to: receiver.email,
-      subject: `Nova mensagem de ${sender.name}  Freelamz`,
-      html: emailTemplate(content),
-    });
-    console.log(`Email de mensagem enviado para ${receiver.email}`);
+    const result = await pool.query(
+      `SELECT COUNT(*) as count FROM messages 
+       WHERE receiver_id = $1 AND is_read = false`,
+      [req.user.id]
+    );
+    res.json({ count: parseInt(result.rows[0].count) });
   } catch (err) {
-    console.error('Erro ao enviar email de mensagem:', err.message);
+    console.error('Erro ao buscar no lidas:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
   }
 };
 
-// Email de pagamento recebido
-const sendPaymentEmail = async (receiver, amount, projectTitle) => {
-  const content = `
-    <h2 style="font-size:20px;font-weight:700;color:#1a1d27;margin-bottom:8px;">Pagamento recebido! </h2>
-    <p style="color:#6b7280;font-size:15px;line-height:1.7;margin-bottom:16px;">
-      Recebeste um pagamento de <strong>${Number(amount).toLocaleString()} MZN</strong> pelo projecto <strong>"${projectTitle}"</strong>.
-    </p>
-    <div style="background:#ecfdf5;border-radius:12px;padding:20px;margin-bottom:20px;border-left:4px solid #10b981;">
-      <p style="color:#10b981;font-size:24px;font-weight:800;">${Number(amount).toLocaleString()} MZN</p>
-      <p style="color:#6b7280;font-size:13px;">via M-Pesa</p>
-    </div>
-    <a href="https://freelamz-frontend.vercel.app/payments" 
-       style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;padding:14px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:15px;">
-      Ver pagamentos
-    </a>
-  `;
-  try {
-    await transporter.sendMail({
-      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
-      to: receiver.email,
-      subject: `Pagamento de ${Number(amount).toLocaleString()} MZN recebido! `,
-      html: emailTemplate(content),
-    });
-    console.log(`Email de pagamento enviado para ${receiver.email}`);
-  } catch (err) {
-    console.error('Erro ao enviar email de pagamento:', err.message);
-  }
-};
-
-module.exports = { sendWelcomeEmail, sendProposalEmail, sendProposalAcceptedEmail, sendMessageEmail, sendPaymentEmail };
+module.exports = { sendMessage, getMessages, getConversations, getUnreadCount };
