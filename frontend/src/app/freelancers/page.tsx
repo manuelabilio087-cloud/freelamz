@@ -18,7 +18,7 @@ const CATEGORIES = [
 
 const SORT_OPTIONS = [
   { value:"recent",  label:"Mais recentes",    icon:"ti-clock" },
-  { value:"rating",  label:"Melhor avaliação", icon:"ti-star" },
+  { value:"rating",  label:"Melhor avaliaÃ§Ã£o", icon:"ti-star" },
   { value:"pro",     label:"Pro primeiro",     icon:"ti-crown" },
 ];
 
@@ -186,20 +186,20 @@ export default function FreelancersPage() {
         <div className="hero-inner">
           <div className="hero-eyebrow">
             <i className="ti ti-map-pin" aria-hidden="true"></i>
-            Moçambique
+            MoÃ§ambique
           </div>
           <h1>Encontra o freelancer<br/><span>certo para o teu projecto</span></h1>
-          <p>Profissionais verificados em design, programação, marketing e muito mais — todos em Moçambique.</p>
+          <p>Profissionais verificados em design, programaÃ§Ã£o, marketing e muito mais â todos em MoÃ§ambique.</p>
           <div className="search-wrap">
             <i className="ti ti-search search-ic" aria-hidden="true"></i>
-            <input className="search-in" placeholder="Pesquisa por nome, skill ou área..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="search-in" placeholder="Pesquisa por nome, skill ou Ã¡rea..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <div className="hero-stats">
             {[
               {icon:"ti-users", val:freelancers.length, lbl:"Freelancers"},
               {icon:"ti-shield-check", val:freelancers.filter(f=>f.verified).length, lbl:"Verificados"},
               {icon:"ti-crown", val:freelancers.filter(f=>f.plan==="pro").length, lbl:"Pro"},
-              {icon:"ti-star", val:"4.8", lbl:"Avaliação média"},
+              {icon:"ti-star", val:"4.8", lbl:"AvaliaÃ§Ã£o mÃ©dia"},
             ].map((s,i) => (
               <div key={i} className="h-stat">
                 <div className="h-stat-ic"><i className={`ti ${s.icon}`} aria-hidden="true"></i></div>
@@ -240,10 +240,10 @@ export default function FreelancersPage() {
         {showFilters && (
           <div className="filter-panel fade">
             <div>
-              <div className="fp-lbl"><i className="ti ti-star" aria-hidden="true"></i> Avaliação mínima</div>
+              <div className="fp-lbl"><i className="ti ti-star" aria-hidden="true"></i> AvaliaÃ§Ã£o mÃ­nima</div>
               <div className="r-opts">
                 {[
-                  {val:0, lbl:"Qualquer avaliação"},
+                  {val:0, lbl:"Qualquer avaliaÃ§Ã£o"},
                   {val:3, lbl:"3 ou mais"},
                   {val:4, lbl:"4 ou mais"},
                   {val:5, lbl:"Apenas 5 estrelas"},
@@ -259,7 +259,7 @@ export default function FreelancersPage() {
               </div>
             </div>
             <div>
-              <div className="fp-lbl"><i className="ti ti-toggle-right" aria-hidden="true"></i> Filtros rápidos</div>
+              <div className="fp-lbl"><i className="ti ti-toggle-right" aria-hidden="true"></i> Filtros rÃ¡pidos</div>
               <div className="toggle-row">
                 <span className="toggle-lbl"><i className="ti ti-shield-check" aria-hidden="true"></i> Apenas verificados</span>
                 <button className={`toggle ${onlyVerified?"on":""}`} onClick={() => setOnlyVerified(v=>!v)} aria-label="Apenas verificados"/>
@@ -270,7 +270,7 @@ export default function FreelancersPage() {
               </div>
             </div>
             <div>
-              <div className="fp-lbl"><i className="ti ti-trash" aria-hidden="true"></i> Acções</div>
+              <div className="fp-lbl"><i className="ti ti-trash" aria-hidden="true"></i> AcÃ§Ãµes</div>
               <button className="clear-fp" onClick={clearAll}>
                 <i className="ti ti-x" aria-hidden="true"></i>
                 Limpar todos os filtros
@@ -318,12 +318,12 @@ export default function FreelancersPage() {
                         <div className="card-rating">
                           <i className="ti ti-star-filled" aria-hidden="true"></i>
                           {rating.toFixed(1)}
-                          <span>({f.review_count||0} avaliações)</span>
+                          <span>({f.review_count||0} avaliaÃ§Ãµes)</span>
                         </div>
                       )}
                     </div>
                   </div>
-                  <p className="card-bio">{f.bio || "Freelancer profissional em Moçambique."}</p>
+                  <p className="card-bio">{f.bio || "Freelancer profissional em MoÃ§ambique."}</p>
                   <div className="skills">
                     {skills.slice(0,3).map((s:string,j:number) => <span key={j} className="skill">{s}</span>)}
                     {skills.length>3 && <span className="skill-more">+{skills.length-3}</span>}
