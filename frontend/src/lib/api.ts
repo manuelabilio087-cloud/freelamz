@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://freelamz-production.up.railway.app/api";
 
 export async function registerUser(data: { name: string; email: string; password: string; role: string }) {
   const res = await fetch(`${API_URL}/auth/register`, {

@@ -32,12 +32,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Freelamz" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <style>{`
-          :root { color-scheme: light; }
-          html, body { background-color: #ffffff; color: #404145; }
-          input, select, textarea { color: #404145; background-color: #ffffff; }
-          input::placeholder, textarea::placeholder { color: #74767e; opacity: 1; }
-        `}</style>
         <script dangerouslySetInnerHTML={{ __html: `
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
@@ -49,7 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         `}} />
       </head>
       <body className={inter.className}>
-        <GoogleOAuthProvider clientId="916098882078-aiavc6pl9nktkkdq26d5dvic4mfr73m6.apps.googleusercontent.com">
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
           {children}
           <NotificationToast />
         </GoogleOAuthProvider>
