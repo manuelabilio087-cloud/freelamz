@@ -1,63 +1,31 @@
-﻿"use client";
-import { ReactNode, createContext, useContext, useState, useEffect } from "react";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://freelamz-production.up.railway.app/api";
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
+export async function registerUser(data: { name: string; email: string; password: string; role: string }) {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
 }
 
-interface AuthContextType {
-  user: User | null;
-  token: string | null;
-  login: (token: string, user: User) => void;
-  logout: () => void;
-  loading: boolean;
+export async function loginUser(data: { email: string; password: string }) {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return res.json();
 }
 
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  token: null,
-  login: () => {},
-  logout: () => {},
-  loading: true,
-});
+export async function getProjects() {
+  const res = await fetch(`${API_URL}/projects`);
+  return res.json();
+}
 
-export const useAuth = () => useContext(AuthContext);
-
-export default function Providers({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
-  }, []);
-
-  const login = (token: string, user: User) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-    setToken(token);
-    setUser(user);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
-      {children}
-    </AuthContext.Provider>
-  );
+export async function getProfile(token: string) {
+  const res = await fetch(`${API_URL}/users/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
 }
