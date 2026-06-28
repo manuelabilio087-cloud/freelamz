@@ -1,4 +1,4 @@
-﻿const pool = require('../config/db');
+const pool = require('../config/db');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
@@ -42,7 +42,7 @@ const updateProfile = async (req, res) => {
 const getFreelancers = async (req, res) => {
   try {
     const freelancers = await pool.query(
-      "SELECT id, name, email, bio, skills, location, avatar, verified, created_at FROM users WHERE role = 'freelancer' ORDER BY created_at DESC"
+      "SELECT id, name, email, bio, skills, location, avatar, verified, created_at, plan FROM users WHERE role = 'freelancer' ORDER BY created_at DESC"
     );
     res.json(freelancers.rows);
   } catch (err) {

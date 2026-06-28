@@ -1,39 +1,63 @@
-import { useEffect, useRef, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+﻿"use client";
+import { ReactNode, createContext, useContext, useState, useEffect } from "react";
 
-const SOCKET_URL = "https://freelamz-production.up.railway.app";
-let socketInstance: Socket | null = null;
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
 
-export const useSocket = (userId?: number) => {
-  const socket = useRef<Socket | null>(null);
+interface AuthContextType {
+  user: User | null;
+  token: string | null;
+  login: (token: string, user: User) => void;
+  logout: () => void;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  token: null,
+  login: () => {},
+  logout: () => {},
+  loading: true,
+});
+
+export const useAuth = () => useContext(AuthContext);
+
+export default function Providers({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
-    if (!socketInstance) {
-      socketInstance = io(SOCKET_URL, {
-        transports: ["websocket", "polling"],
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 1000,
-      });
+    const savedToken = localStorage.getItem("token");
+    const savedUser = localStorage.getItem("user");
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setUser(JSON.parse(savedUser));
     }
-    socket.current = socketInstance;
-    socket.current.emit("user:join", userId);
-  }, [userId]);
-
-  const onMessage = useCallback((uid: number, callback: (msg: any) => void) => {
-    if (!socket.current) return;
-    socket.current.on(`message:${uid}`, callback);
+    setLoading(false);
   }, []);
 
-  const onNotification = useCallback((uid: number, callback: (notif: any) => void) => {
-    if (!socket.current) return;
-    socket.current.on(`notification:${uid}`, callback);
-  }, []);
+  const login = (token: string, user: User) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+    setToken(token);
+    setUser(user);
+  };
 
-  const emitMessage = useCallback((receiverId: number, message: any) => {
-    socket.current?.emit("message:send", { receiver_id: receiverId, message });
-  }, []);
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setUser(null);
+  };
 
-  return { socket: socket.current, onMessage, onNotification, emitMessage };
-};
+  return (
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
