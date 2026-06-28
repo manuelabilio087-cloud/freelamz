@@ -1,8 +1,7 @@
-import { useEffect, useRef, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useEffect, useRef, useCallback } from "react";
+import { io, Socket } from "socket.io-client";
 
-const SOCKET_URL = 'https://freelamz-production.up.railway.app';
-
+const SOCKET_URL = "https://freelamz-production.up.railway.app";
 let socketInstance: Socket | null = null;
 
 export const useSocket = (userId?: number) => {
@@ -10,41 +9,30 @@ export const useSocket = (userId?: number) => {
 
   useEffect(() => {
     if (!userId) return;
-
-    // Reutiliza instância existente
     if (!socketInstance) {
       socketInstance = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ["websocket", "polling"],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
       });
     }
-
     socket.current = socketInstance;
-
-    // Identifica o utilizador
-    socket.current.emit('user:join', userId);
-
-    return () => {
-      // Não desconecta ao desmontar — mantém conexão global
-    };
+    socket.current.emit("user:join", userId);
   }, [userId]);
 
-  const onMessage = useCallback((userId: number, callback: (msg: any) => void) => {
+  const onMessage = useCallback((uid: number, callback: (msg: any) => void) => {
     if (!socket.current) return;
-    socket.current.on(`message:${userId}`, callback);
-    return () => socket.current?.off(`message:${userId}`, callback);
+    socket.current.on(`message:${uid}`, callback);
   }, []);
 
-  const onNotification = useCallback((userId: number, callback: (notif: any) => void) => {
+  const onNotification = useCallback((uid: number, callback: (notif: any) => void) => {
     if (!socket.current) return;
-    socket.current.on(`notification:${userId}`, callback);
-    return () => socket.current?.off(`notification:${userId}`, callback);
+    socket.current.on(`notification:${uid}`, callback);
   }, []);
 
   const emitMessage = useCallback((receiverId: number, message: any) => {
-    socket.current?.emit('message:send', { receiver_id: receiverId, message });
+    socket.current?.emit("message:send", { receiver_id: receiverId, message });
   }, []);
 
   return { socket: socket.current, onMessage, onNotification, emitMessage };
