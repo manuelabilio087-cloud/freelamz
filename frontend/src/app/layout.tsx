@@ -1,27 +1,18 @@
-﻿import type { Metadata, Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import NotificationToast from "@/components/NotificationToast";
-import Navbar from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Freelamz",
-  description: "A plataforma de freelancers de Moçambique",
+  description: "A plataforma de freelancers de Mocambique",
   manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Freelamz",
-  },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Freelamz" },
   formatDetection: { telephone: false },
-  openGraph: {
-    type: "website",
-    title: "Freelamz",
-    description: "A plataforma de freelancers de Moçambique",
-  },
+  openGraph: { type: "website", title: "Freelamz", description: "A plataforma de freelancers de Mocambique" },
 };
 
 export const viewport: Viewport = {
@@ -47,21 +38,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           input, select, textarea { color: #404145; background-color: #ffffff; }
           input::placeholder, textarea::placeholder { color: #74767e; opacity: 1; }
         `}</style>
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js')
-                  .then(function(reg) { console.log('SW registado:', reg.scope); })
-                  .catch(function(err) { console.log('SW erro:', err); });
-              });
-            }
-          `
-        }} />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) { console.log('SW registado:', reg.scope); })
+                .catch(function(err) { console.log('SW erro:', err); });
+            });
+          }
+        `}} />
       </head>
       <body className={inter.className}>
         <GoogleOAuthProvider clientId="916098882078-aiavc6pl9nktkkdq26d5dvic4mfr73m6.apps.googleusercontent.com">
-          <Navbar />
           {children}
           <NotificationToast />
         </GoogleOAuthProvider>
