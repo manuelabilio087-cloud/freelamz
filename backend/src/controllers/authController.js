@@ -1,4 +1,4 @@
-﻿const bcrypt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
   port: 587,
   secure: false,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
   tls: { rejectUnauthorized: false }
 });
@@ -165,7 +165,7 @@ const forgotPassword = async (req, res) => {
     );
     const resetUrl = `https://freelamz-frontend.vercel.app/reset-password?token=${token}`;
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: 'Recuperacao de senha - Freelamz',
       html: `
@@ -216,7 +216,7 @@ const sendEmailCode = async (req, res) => {
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     emailCodes.set(email, { code, expires: Date.now() + 10 * 60 * 1000 });
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: email,
       subject: 'Codigo de verificacao - Freelamz',
       html: `

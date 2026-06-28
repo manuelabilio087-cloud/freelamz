@@ -4,8 +4,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -119,7 +119,7 @@ const sendNewsletter = async (req, res) => {
       return res.status(400).json({ message: 'Nenhum utilizador com email encontrado.' });
     }
     const mailOptions = {
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: emails.join(','),
       subject: subject,
       html: `

@@ -3,8 +3,8 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -41,7 +41,7 @@ const sendWelcomeEmail = async (user) => {
   `;
   try {
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: user.email,
       subject: `Bem-vindo ao Freelamz, ${user.name}! 🎉`,
       html: emailTemplate(content),
@@ -70,7 +70,7 @@ const sendProposalEmail = async (client, freelancer, project) => {
   `;
   try {
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: client.email,
       subject: `Nova proposta de ${freelancer.name} — Freelamz`,
       html: emailTemplate(content),
@@ -98,7 +98,7 @@ const sendProposalAcceptedEmail = async (freelancer, project) => {
   `;
   try {
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: freelancer.email,
       subject: `Proposta aceite — ${project.title} 🎉`,
       html: emailTemplate(content),
@@ -123,7 +123,7 @@ const sendMessageEmail = async (receiver, sender) => {
   `;
   try {
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: receiver.email,
       subject: `Nova mensagem de ${sender.name} — Freelamz`,
       html: emailTemplate(content),
@@ -152,7 +152,7 @@ const sendPaymentEmail = async (receiver, amount, projectTitle) => {
   `;
   try {
     await transporter.sendMail({
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
+      from: `"Freelamz" <${process.env.GMAIL_USER}>`,
       to: receiver.email,
       subject: `Pagamento de ${Number(amount).toLocaleString()} MZN recebido! 💰`,
       html: emailTemplate(content),
