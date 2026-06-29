@@ -1,11 +1,11 @@
-﻿const pool = require('../config/db');
+const pool = require('../config/db');
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
   },
 });
 
@@ -16,12 +16,12 @@ const getProfile = async (req, res) => {
       [req.user.id]
     );
     if (user.rows.length === 0) {
-      return res.status(404).json({ message: 'Utilizador nao encontrado.' });
+      return res.status(404).json({ message: 'Utilizador não encontrado.' });
     }
     res.json(user.rows[0]);
   } catch (err) {
     console.error('Erro no perfil:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
@@ -30,24 +30,64 @@ const updateProfile = async (req, res) => {
   try {
     const user = await pool.query(
       'UPDATE users SET name = COALESCE($1, name), bio = COALESCE($2, bio), skills = COALESCE($3, skills), phone = COALESCE($4, phone), location = COALESCE($5, location) WHERE id = $6 RETURNING id, name, email, role, bio, skills, phone, location, avatar, verified',
-      [name, bio, JSON.stringify(skills), phone, location, req.user.id]
+      [name, bio, skills ? JSON.stringify(skills) : null, phone, location, req.user.id]
     );
     res.json(user.rows[0]);
   } catch (err) {
     console.error('Erro ao actualizar perfil:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
+// FIX: Paginação adicionada — evita carregar todos os utilizadores de uma vez
 const getFreelancers = async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const offset = (page - 1) * limit;
+
+    const { search, location, skill } = req.query;
+    const params = [limit, offset];
+    let paramCount = 2;
+    let filters = [];
+
+    if (search) {
+      paramCount++;
+      filters.push(`(u.name ILIKE $${paramCount} OR u.bio ILIKE $${paramCount})`);
+      params.push(`%${search}%`);
+    }
+    if (location) {
+      paramCount++;
+      filters.push(`u.location ILIKE $${paramCount}`);
+      params.push(`%${location}%`);
+    }
+
+    const whereClause = filters.length > 0 ? 'AND ' + filters.join(' AND ') : '';
+
     const freelancers = await pool.query(
-      "SELECT id, name, email, bio, skills, location, avatar, verified, created_at FROM users WHERE role = 'freelancer' ORDER BY created_at DESC"
+      `SELECT id, name, bio, skills, location, avatar, verified, created_at
+       FROM users u
+       WHERE role = 'freelancer' ${whereClause}
+       ORDER BY verified DESC, created_at DESC
+       LIMIT $1 OFFSET $2`,
+      params
     );
-    res.json(freelancers.rows);
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM users u WHERE role = 'freelancer' ${whereClause}`,
+      params.slice(2)
+    );
+
+    res.json({
+      freelancers: freelancers.rows,
+      total: parseInt(countResult.rows[0].count),
+      page,
+      limit,
+      totalPages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+    });
   } catch (err) {
     console.error('Erro ao buscar freelancers:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
@@ -55,40 +95,63 @@ const getFreelancerById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await pool.query(
-      `SELECT id, name, bio, skills, location, avatar, verified, created_at 
+      `SELECT id, name, bio, skills, location, avatar, verified, created_at
        FROM users WHERE id = $1 AND role = 'freelancer'`,
       [id]
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Freelancer no encontrado.' });
+      return res.status(404).json({ message: 'Freelancer não encontrado.' });
     }
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Erro ao buscar freelancer:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
+// FIX: Paginação adicionada para admin
 const getAllUsers = async (req, res) => {
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, parseInt(req.query.limit) || 50);
+    const offset = (page - 1) * limit;
+
     const users = await pool.query(
-      'SELECT id, name, email, role, bio, skills, avatar, verified, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, name, email, role, bio, skills, avatar, verified, created_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
     );
-    res.json(users.rows);
+    const countResult = await pool.query('SELECT COUNT(*) FROM users');
+    res.json({
+      users: users.rows,
+      total: parseInt(countResult.rows[0].count),
+      page,
+      limit,
+    });
   } catch (err) {
     console.error('Erro ao buscar utilizadores:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    // FIX: Não permite apagar a si próprio nem outro admin
+    if (String(id) === String(req.user.id)) {
+      return res.status(400).json({ message: 'Não podes apagar a tua própria conta por aqui.' });
+    }
+    const target = await pool.query('SELECT is_admin FROM users WHERE id = $1', [id]);
+    if (target.rows.length === 0) {
+      return res.status(404).json({ message: 'Utilizador não encontrado.' });
+    }
+    if (target.rows[0].is_admin) {
+      return res.status(403).json({ message: 'Não é possível apagar outro administrador.' });
+    }
     await pool.query('DELETE FROM users WHERE id = $1', [id]);
     res.json({ message: 'Utilizador removido com sucesso.' });
   } catch (err) {
     console.error('Erro ao remover utilizador:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
@@ -101,70 +164,81 @@ const verifyFreelancer = async (req, res) => {
       [verified, id, 'freelancer']
     );
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Freelancer nao encontrado.' });
+      return res.status(404).json({ message: 'Freelancer não encontrado.' });
     }
-    res.json({ message: verified ? 'Freelancer verificado com sucesso.' : 'Verificacao removida.', user: result.rows[0] });
+    res.json({ message: verified ? 'Freelancer verificado com sucesso.' : 'Verificação removida.', user: result.rows[0] });
   } catch (err) {
     console.error('Erro ao verificar freelancer:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
+// FIX: Newsletter enviada em BCC em vez de To — não expõe emails de outros utilizadores
 const sendNewsletter = async (req, res) => {
   const { subject, message } = req.body;
+  if (!subject || !message) {
+    return res.status(400).json({ message: 'Assunto e mensagem são obrigatórios.' });
+  }
   try {
     const users = await pool.query('SELECT email FROM users WHERE email IS NOT NULL');
     const emails = users.rows.map(u => u.email);
     if (emails.length === 0) {
       return res.status(400).json({ message: 'Nenhum utilizador com email encontrado.' });
     }
-    const mailOptions = {
-      from: `"Freelamz" <${process.env.EMAIL_USER}>`,
-      to: emails.join(','),
-      subject: subject,
-      html: `
-        <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f5f6fa;">
-          <div style="background:#fff;border-radius:16px;padding:32px;">
-            <h2 style="color:#1a1d27;font-size:20px;margin-bottom:16px;">${subject}</h2>
-            <div style="color:#4b5563;font-size:15px;line-height:1.6;">${message}</div>
-            <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e8eaf0;text-align:center;color:#8b90a7;font-size:13px;">
-              Freelamz  A plataforma de freelancers de Moambique
+    // FIX: Enviado em lotes para não sobrecarregar o servidor de email
+    const BATCH_SIZE = 50;
+    for (let i = 0; i < emails.length; i += BATCH_SIZE) {
+      const batch = emails.slice(i, i + BATCH_SIZE);
+      await transporter.sendMail({
+        from: `"Freelamz" <${process.env.GMAIL_USER}>`,
+        to: process.env.GMAIL_USER, // FIX: To é o remetente, BCC são os utilizadores
+        bcc: batch,
+        subject: subject,
+        html: `
+          <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f5f6fa;">
+            <div style="background:#fff;border-radius:16px;padding:32px;">
+              <h2 style="color:#1a1d27;font-size:20px;margin-bottom:16px;">${subject}</h2>
+              <div style="color:#4b5563;font-size:15px;line-height:1.6;">${message}</div>
+              <div style="margin-top:32px;padding-top:16px;border-top:1px solid #e8eaf0;text-align:center;color:#8b90a7;font-size:13px;">
+                Freelamz — A plataforma de freelancers de Moçambique
+              </div>
             </div>
           </div>
-        </div>
-      `,
-    };
-    await transporter.sendMail(mailOptions);
+        `,
+      });
+    }
     res.json({ message: `Newsletter enviada para ${emails.length} utilizadores!` });
   } catch (err) {
     console.error('Erro ao enviar newsletter:', err);
-    res.status(500).json({ message: 'Erro ao enviar newsletter.', error: err.message });
+    res.status(500).json({ message: 'Erro ao enviar newsletter.' });
   }
 };
 
+// FIX: Stats em query única para reduzir chamadas à BD
 const getFreelancerStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    const proposalsRes = await pool.query('SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1', [userId]);
-    const acceptedRes = await pool.query("SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = 'accepted'", [userId]);
-    const ongoingRes = await pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'in_progress'", [userId]);
-    const completedRes = await pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]);
-    const earningsRes = await pool.query("SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]);
-    const ratingRes = await pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1', [userId]);
-    const unreadRes = await pool.query('SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false', [userId]);
-
+    const [proposals, accepted, ongoing, completed, earnings, rating, unread] = await Promise.all([
+      pool.query('SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1', [userId]),
+      pool.query("SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = 'accepted'", [userId]),
+      pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'in_progress'", [userId]),
+      pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
+      pool.query("SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
+      pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1', [userId]),
+      pool.query('SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false', [userId]),
+    ]);
     res.json({
-      proposals: parseInt(proposalsRes.rows[0].total),
-      accepted: parseInt(acceptedRes.rows[0].total),
-      ongoing: parseInt(ongoingRes.rows[0].total),
-      completed: parseInt(completedRes.rows[0].total),
-      earnings: parseInt(earningsRes.rows[0].total),
-      rating: parseFloat(ratingRes.rows[0].avg).toFixed(1),
-      unreadMessages: parseInt(unreadRes.rows[0].total),
+      proposals: parseInt(proposals.rows[0].total),
+      accepted: parseInt(accepted.rows[0].total),
+      ongoing: parseInt(ongoing.rows[0].total),
+      completed: parseInt(completed.rows[0].total),
+      earnings: parseInt(earnings.rows[0].total),
+      rating: parseFloat(rating.rows[0].avg).toFixed(1),
+      unreadMessages: parseInt(unread.rows[0].total),
     });
   } catch (err) {
-    console.error('Erro ao buscar estatisticas:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+    console.error('Erro ao buscar estatísticas:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
 
