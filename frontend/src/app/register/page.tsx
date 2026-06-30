@@ -1,12 +1,14 @@
 ﻿"use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
-export default function Register() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const referralCode = searchParams.get("ref") || "";
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,7 @@ export default function Register() {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role: "freelancer" }),
+        body: JSON.stringify({ name, email, password, role: "freelancer", referral_code: referralCode || undefined }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Erro ao criar conta"); return; }
@@ -127,6 +129,11 @@ export default function Register() {
                   <label>Senha</label>
                   <input type="password" placeholder="Minimo 6 caracteres" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
+                {referralCode && (
+                  <p style={{ fontSize: "13px", color: "#1dbf73", marginBottom: "12px", background: "#ecfdf5", padding: "10px", borderRadius: "4px" }}>
+                    Codigo de indicacao aplicado: <strong>{referralCode}</strong>
+                  </p>
+                )}
                 {error && <p className="error">{error}</p>}
                 <button type="submit" className="btn-primary" disabled={loading}>
                   {loading ? "A criar conta..." : "Criar conta"}
@@ -145,5 +152,13 @@ export default function Register() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
   );
 }

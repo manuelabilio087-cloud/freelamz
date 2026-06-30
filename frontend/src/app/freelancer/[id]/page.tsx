@@ -17,6 +17,16 @@ export default function FreelancerProfile() {
   const [user, setUser] = useState<any>(null);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [canReview, setCanReview] = useState(false);
+  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [showAddPortfolio, setShowAddPortfolio] = useState(false);
+  const [pfTitle, setPfTitle] = useState("");
+  const [pfDescription, setPfDescription] = useState("");
+  const [pfImageUrl, setPfImageUrl] = useState("");
+  const [pfProjectUrl, setPfProjectUrl] = useState("");
+  const [pfSubmitting, setPfSubmitting] = useState(false);
+  const [pfError, setPfError] = useState("");
+
+  const isOwnProfile = user && freelancer && String(user.id) === String(freelancer.id);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -30,6 +40,56 @@ export default function FreelancerProfile() {
       checkCanReview();
     }
   }, [user, freelancer]);
+
+  useEffect(() => {
+    if (id) fetchPortfolio();
+  }, [id]);
+
+  const fetchPortfolio = async () => {
+    try {
+      const res = await fetch(`${API_URL}/portfolio/user/${id}`);
+      const data = await res.json();
+      setPortfolio(Array.isArray(data) ? data : []);
+    } catch {}
+  };
+
+  const handleAddPortfolio = async () => {
+    if (!pfTitle.trim() || !pfImageUrl.trim()) {
+      setPfError("Titulo e link da imagem sao obrigatorios.");
+      return;
+    }
+    setPfSubmitting(true);
+    setPfError("");
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_URL}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title: pfTitle, description: pfDescription, image_url: pfImageUrl, project_url: pfProjectUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      setPfTitle(""); setPfDescription(""); setPfImageUrl(""); setPfProjectUrl("");
+      setShowAddPortfolio(false);
+      fetchPortfolio();
+    } catch (err: any) {
+      setPfError(err.message || "Erro ao adicionar item.");
+    } finally {
+      setPfSubmitting(false);
+    }
+  };
+
+  const handleDeletePortfolio = async (itemId: number) => {
+    if (!confirm("Remover este item do portfolio?")) return;
+    try {
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/portfolio/${itemId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setPortfolio((prev) => prev.filter((p) => p.id !== itemId));
+    } catch {}
+  };
 
   const checkCanReview = async () => {
     const token = localStorage.getItem("token");
@@ -319,6 +379,7 @@ const loadData = async () => {
           <div className="tabs">
             {[
               {id:"sobre",      label:"Sobre",       icon:"ti-user"},
+              {id:"portfolio",  label:`Portfólio (${portfolio.length})`, icon:"ti-briefcase"},
               {id:"reviews",    label:`Avaliações (${reviews.length})`, icon:"ti-star"},
             ].map(t => (
               <button key={t.id} className={`tab ${tab===t.id?"active":""}`} onClick={() => setTab(t.id)}>
@@ -350,6 +411,72 @@ const loadData = async () => {
                 <div className="card" style={{textAlign:"center",padding:"48px",color:"#9ca3af"}}>
                   <i className="ti ti-user-off" style={{fontSize:"40px",display:"block",marginBottom:"12px"}} aria-hidden="true"></i>
                   <p>Este freelancer ainda não preencheu o perfil.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "portfolio" && (
+            <div className="fade">
+              {isOwnProfile && (
+                <div className="card">
+                  {!showAddPortfolio ? (
+                    <button
+                      onClick={() => setShowAddPortfolio(true)}
+                      style={{background:"#6366f1",color:"#fff",padding:"10px 18px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"13.5px",fontWeight:600,display:"flex",alignItems:"center",gap:"6px"}}
+                    >
+                      <i className="ti ti-plus" aria-hidden="true"></i> Adicionar item ao portfólio
+                    </button>
+                  ) : (
+                    <div>
+                      <div className="card-title"><i className="ti ti-briefcase" aria-hidden="true"></i> Novo item</div>
+                      <div style={{display:"flex",flexDirection:"column",gap:"10px"}}>
+                        <input placeholder="Titulo do projecto" value={pfTitle} onChange={e=>setPfTitle(e.target.value)} style={{padding:"10px 12px",border:"1.5px solid #e8eaed",borderRadius:"8px",fontSize:"14px",outline:"none"}} />
+                        <textarea placeholder="Descricao (opcional)" value={pfDescription} onChange={e=>setPfDescription(e.target.value)} rows={3} style={{padding:"10px 12px",border:"1.5px solid #e8eaed",borderRadius:"8px",fontSize:"14px",outline:"none",resize:"vertical",fontFamily:"inherit"}} />
+                        <input placeholder="Link da imagem (https://...)" value={pfImageUrl} onChange={e=>setPfImageUrl(e.target.value)} style={{padding:"10px 12px",border:"1.5px solid #e8eaed",borderRadius:"8px",fontSize:"14px",outline:"none"}} />
+                        <input placeholder="Link do projecto (opcional)" value={pfProjectUrl} onChange={e=>setPfProjectUrl(e.target.value)} style={{padding:"10px 12px",border:"1.5px solid #e8eaed",borderRadius:"8px",fontSize:"14px",outline:"none"}} />
+                        {pfError && <p style={{color:"#dc2626",fontSize:"13px"}}>{pfError}</p>}
+                        <div style={{display:"flex",gap:"10px"}}>
+                          <button onClick={handleAddPortfolio} disabled={pfSubmitting} style={{background:"#6366f1",color:"#fff",padding:"10px 18px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"13.5px",fontWeight:600}}>
+                            {pfSubmitting ? "A guardar..." : "Guardar"}
+                          </button>
+                          <button onClick={() => { setShowAddPortfolio(false); setPfError(""); }} style={{background:"#f3f4f6",color:"#374151",padding:"10px 18px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"13.5px",fontWeight:600}}>
+                            Cancelar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {portfolio.length === 0 ? (
+                <div className="card" style={{textAlign:"center",padding:"48px",color:"#9ca3af"}}>
+                  <i className="ti ti-briefcase" style={{fontSize:"40px",display:"block",marginBottom:"12px"}} aria-hidden="true"></i>
+                  <p>{isOwnProfile ? "Ainda nao adicionaste nada ao teu portfolio." : "Este freelancer ainda nao tem itens no portfolio."}</p>
+                </div>
+              ) : (
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(220px, 1fr))",gap:"16px"}}>
+                  {portfolio.map((item) => (
+                    <div key={item.id} className="card" style={{padding:0,overflow:"hidden",position:"relative"}}>
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => handleDeletePortfolio(item.id)}
+                          style={{position:"absolute",top:"10px",right:"10px",width:"30px",height:"30px",borderRadius:"50%",background:"rgba(0,0,0,0.55)",border:"none",color:"#fff",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",zIndex:2}}
+                          title="Remover"
+                        >
+                          <i className="ti ti-trash" style={{fontSize:"15px"}} aria-hidden="true"></i>
+                        </button>
+                      )}
+                      <a href={item.project_url || undefined} target={item.project_url ? "_blank" : undefined} rel="noopener noreferrer" style={{textDecoration:"none",color:"inherit",display:"block"}}>
+                        <img src={item.image_url} alt={item.title} style={{width:"100%",height:"150px",objectFit:"cover",display:"block"}} />
+                        <div style={{padding:"14px"}}>
+                          <h4 style={{fontSize:"14px",fontWeight:700,color:"#111827",marginBottom:"4px"}}>{item.title}</h4>
+                          {item.description && <p style={{fontSize:"12.5px",color:"#6b7280",lineHeight:1.5}}>{item.description}</p>}
+                        </div>
+                      </a>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
