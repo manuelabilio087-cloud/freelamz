@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const pool = require('../config/db');
 const { sendWelcomeEmail } = require('../services/emailService');
+const { applyReferral } = require('./affiliateController');
 require('dotenv').config();
 
 // FIX: JWT_SECRET obrigatório — sem fallback inseguro
@@ -31,7 +32,7 @@ const transporter = nodemailer.createTransport({
 // Usa a tabela email_verification_codes (ver comentário no final)
 
 const register = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, referral_code } = req.body;
 
   // FIX: Validação de input
   if (!name || !email || !password) {
@@ -57,6 +58,9 @@ const register = async (req, res) => {
       { expiresIn: '7d' }
     );
     sendWelcomeEmail(newUser.rows[0]);
+    if (referral_code) {
+      applyReferral(newUser.rows[0].id, referral_code).catch(() => {});
+    }
     res.status(201).json({ user: newUser.rows[0], token });
   } catch (err) {
     console.error('Erro no registo:', err);

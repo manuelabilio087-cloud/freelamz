@@ -43,15 +43,18 @@ const createGig = async (req, res) => {
 
 const getGigs = async (req, res) => {
   try {
-    const { category, min_price, max_price, search } = req.query;
-    // FIX: Paginação adicionada
+    const { category, category_slug, min_price, max_price, search, min_rating, max_delivery_days, sort } = req.query;
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const offset = (page - 1) * limit;
 
     let query = `
-      SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar,
-        (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) as starting_price
+      SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar, u.verified as freelancer_verified,
+        u.seller_level,
+        (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) as starting_price,
+        (SELECT MIN(delivery_days) FROM gig_packages WHERE gig_id = g.id) as fastest_delivery,
+        (SELECT COALESCE(AVG(rating),0) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as avg_rating,
+        (SELECT COUNT(*) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as review_count
       FROM gigs g
       JOIN users u ON g.freelancer_id = u.id
       WHERE g.status = 'active'
@@ -61,12 +64,17 @@ const getGigs = async (req, res) => {
 
     if (category) {
       paramCount++;
-      query += ` AND g.category = $${paramCount}`;
+      query += ` AND g.category_id = $${paramCount}`;
       params.push(category);
+    }
+    if (category_slug) {
+      paramCount++;
+      query += ` AND g.category_id = (SELECT id FROM categories WHERE slug = $${paramCount})`;
+      params.push(category_slug);
     }
     if (search) {
       paramCount++;
-      query += ` AND (g.title ILIKE $${paramCount} OR g.description ILIKE $${paramCount})`;
+      query += ` AND (g.title ILIKE $${paramCount} OR g.description ILIKE $${paramCount} OR g.tags ILIKE $${paramCount})`;
       params.push(`%${search}%`);
     }
     if (min_price) {
@@ -79,9 +87,28 @@ const getGigs = async (req, res) => {
       query += ` AND (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) <= $${paramCount}`;
       params.push(max_price);
     }
+    if (max_delivery_days) {
+      paramCount++;
+      query += ` AND (SELECT MIN(delivery_days) FROM gig_packages WHERE gig_id = g.id) <= $${paramCount}`;
+      params.push(max_delivery_days);
+    }
+    if (min_rating) {
+      paramCount++;
+      query += ` AND (SELECT COALESCE(AVG(rating),0) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) >= $${paramCount}`;
+      params.push(min_rating);
+    }
+
+    const sortOptions = {
+      newest: 'g.created_at DESC',
+      price_asc: 'starting_price ASC',
+      price_desc: 'starting_price DESC',
+      rating: 'avg_rating DESC',
+      popular: 'g.orders_count DESC',
+    };
+    query += ` ORDER BY ${sortOptions[sort] || sortOptions.newest}`;
 
     paramCount++;
-    query += ` ORDER BY g.created_at DESC LIMIT $${paramCount}`;
+    query += ` LIMIT $${paramCount}`;
     params.push(limit);
     paramCount++;
     query += ` OFFSET $${paramCount}`;
@@ -95,21 +122,42 @@ const getGigs = async (req, res) => {
   }
 };
 
+const getFeaturedGigs = async (req, res) => {
+  try {
+    const limit = Math.min(20, parseInt(req.query.limit) || 8);
+    const result = await pool.query(
+      `SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar, u.seller_level,
+        (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) as starting_price,
+        (SELECT COALESCE(AVG(rating),0) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as avg_rating,
+        (SELECT COUNT(*) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as review_count
+       FROM gigs g
+       JOIN users u ON g.freelancer_id = u.id
+       WHERE g.status = 'active'
+       ORDER BY g.orders_count DESC, g.views_count DESC
+       LIMIT $1`,
+      [limit]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar gigs em destaque:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
 const getGigById = async (req, res) => {
   const { id } = req.params;
   try {
-    // FIX: Queries em paralelo para melhor performance
     const [gigResult, packagesResult, reviewsResult] = await Promise.all([
       pool.query(
-        'SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar, u.bio as freelancer_bio FROM gigs g JOIN users u ON g.freelancer_id = u.id WHERE g.id = $1',
+        'SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar, u.bio as freelancer_bio, u.seller_level, u.verified as freelancer_verified FROM gigs g JOIN users u ON g.freelancer_id = u.id WHERE g.id = $1',
         [id]
       ),
       pool.query('SELECT * FROM gig_packages WHERE gig_id = $1 ORDER BY price ASC', [id]),
       pool.query(
         `SELECT r.*, u.name as reviewer_name FROM order_reviews r
          JOIN users u ON r.reviewer_id = u.id
-         JOIN gigs g ON g.freelancer_id = r.reviewed_id
-         WHERE g.id = $1 LIMIT 20`,
+         JOIN orders o ON r.order_id = o.id
+         WHERE o.gig_id = $1 ORDER BY r.created_at DESC LIMIT 20`,
         [id]
       ),
     ]);
@@ -117,6 +165,8 @@ const getGigById = async (req, res) => {
     if (gigResult.rows.length === 0) {
       return res.status(404).json({ message: 'Gig não encontrado.' });
     }
+
+    pool.query('UPDATE gigs SET views_count = COALESCE(views_count, 0) + 1 WHERE id = $1', [id]).catch(() => {});
 
     res.json({
       gig: gigResult.rows[0],
@@ -129,4 +179,4 @@ const getGigById = async (req, res) => {
   }
 };
 
-module.exports = { createGig, getGigs, getGigById };
+module.exports = { createGig, getGigs, getFeaturedGigs, getGigById };

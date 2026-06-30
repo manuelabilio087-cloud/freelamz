@@ -14,6 +14,13 @@ const contractRoutes = require('./routes/contractRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const subscriptionRoutes = require('./routes/subscriptionRoutes');
 const disputeRoutes = require('./routes/disputeRoutes');
+const gigRoutes = require('./routes/gigRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const favoriteRoutes = require('./routes/favoriteRoutes');
+const portfolioRoutes = require('./routes/portfolioRoutes');
+const affiliateRoutes = require('./routes/affiliateRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 dotenv.config();
 
@@ -115,6 +122,13 @@ app.use('/api/contracts', contractRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/disputes', disputeRoutes);
+app.use('/api/gigs', gigRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/favorites', favoriteRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/affiliates', affiliateRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

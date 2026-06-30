@@ -1,5 +1,6 @@
 const pool = require('../config/db');
 const { sendPaymentEmail } = require('../services/emailService');
+const { rewardReferralOnSubscription } = require('./affiliateController');
 
 const PLANS = {
   free: { name: 'Gratuito', price: 0, proposals_limit: 3 },
@@ -59,6 +60,7 @@ const subscribePro = async (req, res) => {
     // Notificações fora da transação
     setImmediate(async () => {
       try {
+        rewardReferralOnSubscription(userId).catch(() => {});
         const user = await pool.query('SELECT name, email FROM users WHERE id = $1', [userId]);
         if (user.rows.length > 0) {
           sendPaymentEmail(user.rows[0], 200, 'Subscrição Pro — Freelamz');

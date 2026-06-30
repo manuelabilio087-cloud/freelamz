@@ -1,16 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authMiddleware');
-const { createGig, getGigs, getGigById } = require('../controllers/gigController');
-const { createOrder, getOrders, getOrderById, updateOrderStatus } = require('../controllers/orderController');
+const { createGig, getGigs, getFeaturedGigs, getGigById } = require('../controllers/gigController');
 
-router.post('/gigs', authMiddleware, createGig);
-router.get('/gigs', getGigs);
-router.get('/gigs/:id', getGigById);
-
-router.post('/orders', authMiddleware, createOrder);
-router.get('/orders', authMiddleware, getOrders);
-router.get('/orders/:id', authMiddleware, getOrderById);
-router.put('/orders/:id/status', authMiddleware, updateOrderStatus);
+router.get('/featured', getFeaturedGigs);
+router.get('/', getGigs);
+router.get('/:id', getGigById);
+router.post('/', authMiddleware, createGig);
 
 module.exports = router;
