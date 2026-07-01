@@ -54,6 +54,12 @@ export default function GigDetail() {
         .package-card:hover { border-color: #1dbf73; }
         .package-card.selected { border-color: #1dbf73; background: #f0fdf4; }
         .card { background: #fff; border: 1px solid #e4e5e7; border-radius: 12px; padding: 24px; }
+        .gig-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
+        .gig-sidebar { position: sticky; top: 84px; }
+        @media (max-width: 768px) {
+          .gig-layout { grid-template-columns: 1fr; }
+          .gig-sidebar { position: static; }
+        }
       `}</style>
 
       <Navbar />
@@ -63,7 +69,7 @@ export default function GigDetail() {
           <Link href="/search/gigs" style={{ color: "#1dbf73", textDecoration: "none", fontSize: "14px" }}>← Voltar aos servicos</Link>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "24px" }}>
+        <div className="gig-layout">
           <div>
             <div className="card" style={{ marginBottom: "24px" }}>
               <h1 style={{ fontSize: "24px", fontWeight: "700", color: "#404145", marginBottom: "16px" }}>{gig.title}</h1>
@@ -96,8 +102,8 @@ export default function GigDetail() {
             </div>
           </div>
 
-          <div>
-            <div className="card" style={{ position: "sticky", top: "88px" }}>
+          <div className="gig-sidebar">
+            <div className="card">
               <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#404145", marginBottom: "16px" }}>Escolha o pacote</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "20px" }}>
                 {packages.map((pkg: any) => (

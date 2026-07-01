@@ -12,6 +12,7 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
   const [dark, setDark] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -69,6 +70,7 @@ export default function ClientDashboard() {
 
   const navGo = (id: string) => {
     const routes: any = { messages:"/messages", contracts:"/contracts", payments:"/payments", disputes:"/disputes", profile:"/profile" };
+    setMobileNavOpen(false);
     if (routes[id]) { router.push(routes[id]); return; }
     setTab(id);
   };
@@ -107,9 +109,30 @@ export default function ClientDashboard() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: bg, fontFamily: "Inter, sans-serif" }}>
+      <style>{`
+        .dash-sidebar { width: 220px; position: fixed; top: 0; left: 0; height: 100vh; z-index: 60; transition: transform 0.25s ease; }
+        .dash-main { margin-left: 220px; }
+        .dash-overlay { display: none; }
+        .dash-burger { display: none; }
+        .dash-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+        .dash-freelancers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        @media (max-width: 880px) {
+          .dash-sidebar { transform: translateX(-100%); }
+          .dash-sidebar.open { transform: translateX(0); }
+          .dash-main { margin-left: 0; }
+          .dash-burger { display: flex; }
+          .dash-overlay.open { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 55; }
+        }
+        @media (max-width: 640px) {
+          .dash-stats-grid { grid-template-columns: repeat(2, 1fr); }
+          .dash-freelancers-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
+      {mobileNavOpen && <div className="dash-overlay open" onClick={() => setMobileNavOpen(false)} />}
 
       {/* SIDEBAR */}
-      <aside style={{ width: 220, background: surf, borderRight: `1px solid ${bord}`, display: "flex", flexDirection: "column", position: "fixed", top: 0, left: 0, height: "100vh", zIndex: 50 }}>
+      <aside className={`dash-sidebar ${mobileNavOpen ? "open" : ""}`} style={{ background: surf, borderRight: `1px solid ${bord}`, display: "flex", flexDirection: "column" }}>
         <div onClick={() => router.push("/")} style={{ padding: "18px 16px", borderBottom: `1px solid ${bord}`, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
           <div style={{ width: 30, height: 30, background: grn, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
@@ -153,12 +176,17 @@ export default function ClientDashboard() {
       </aside>
 
       {/* MAIN */}
-      <main style={{ marginLeft: 220, flex: 1, minHeight: "100vh", background: bg }}>
+      <main className="dash-main" style={{ flex: 1, minHeight: "100vh", background: bg }}>
         {/* Topbar */}
         <div style={{ background: surf, borderBottom: `1px solid ${bord}`, padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 40 }}>
-          <span style={{ fontSize: 15, fontWeight: 600, color: txt }}>
-            {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Cliente"} 👋` : tab === "projects" ? "Meus Projectos" : tab === "freelancers" ? "Freelancers" : "Dashboard"}
-          </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            <button className="dash-burger" onClick={() => setMobileNavOpen(true)} style={{ background: "none", border: `1px solid ${bord}`, borderRadius: 8, width: 34, height: 34, alignItems: "center", justifyContent: "center", cursor: "pointer", color: txt, flexShrink: 0 }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <span style={{ fontSize: 15, fontWeight: 600, color: txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Cliente"} 👋` : tab === "projects" ? "Meus Projectos" : tab === "freelancers" ? "Freelancers" : "Dashboard"}
+            </span>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500 }}>
               Mensagens
@@ -175,7 +203,7 @@ export default function ClientDashboard() {
           {tab === "overview" && (
             <>
               {/* Stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+              <div className="dash-stats-grid">
                 {[
                   { label: "Projectos publicados", value: projects.length, sub: `${activeProjects.length} activos`, bg: accB, col: accT },
                   { label: "Propostas recebidas",  value: 0, sub: "Para rever", bg: grnB, col: grnT },
