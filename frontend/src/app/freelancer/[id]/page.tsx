@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import ReviewModal from "../../../components/ReviewModal";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -133,21 +134,27 @@ const loadData = async () => {
   }));
 
   if (loading) return (
-    <div style={{minHeight:"100vh",background:"#f4f5f7",display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{minHeight:"100vh",background:"#f4f5f7"}}>
+      <Navbar />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{textAlign:"center"}}>
-        <i className="ti ti-loader" style={{fontSize:"32px",color:"#6366f1",animation:"spin 1s linear infinite"}} aria-hidden="true"></i>
-        <p style={{marginTop:"12px",color:"#6b7280",fontSize:"14px"}}>A carregar perfil...</p>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 20px"}}>
+        <div style={{textAlign:"center"}}>
+          <i className="ti ti-loader" style={{fontSize:"32px",color:"#6366f1",animation:"spin 1s linear infinite"}} aria-hidden="true"></i>
+          <p style={{marginTop:"12px",color:"#6b7280",fontSize:"14px"}}>A carregar perfil...</p>
+        </div>
       </div>
     </div>
   );
 
   if (!freelancer || freelancer.role !== "freelancer") return (
-    <div style={{minHeight:"100vh",background:"#f4f5f7",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{textAlign:"center"}}>
-        <i className="ti ti-user-off" style={{fontSize:"48px",color:"#d1d5db",display:"block",marginBottom:"16px"}} aria-hidden="true"></i>
-        <p style={{color:"#6b7280",marginBottom:"16px"}}>Freelancer não encontrado.</p>
-        <button onClick={() => router.push("/freelancers")} style={{background:"#6366f1",color:"#fff",padding:"10px 20px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"14px",fontWeight:"600"}}>Ver freelancers</button>
+    <div style={{minHeight:"100vh",background:"#f4f5f7"}}>
+      <Navbar />
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 20px"}}>
+        <div style={{textAlign:"center"}}>
+          <i className="ti ti-user-off" style={{fontSize:"48px",color:"#d1d5db",display:"block",marginBottom:"16px"}} aria-hidden="true"></i>
+          <p style={{color:"#6b7280",marginBottom:"16px"}}>Freelancer não encontrado.</p>
+          <button onClick={() => router.push("/freelancers")} style={{background:"#6366f1",color:"#fff",padding:"10px 20px",borderRadius:"8px",border:"none",cursor:"pointer",fontSize:"14px",fontWeight:"600"}}>Ver freelancers</button>
+        </div>
       </div>
     </div>
   );
@@ -288,6 +295,7 @@ const loadData = async () => {
         }
       `}</style>
 
+      <Navbar />
       <div className="hero">
         <div className="hero-bg" aria-hidden="true"/>
         <div className="hero-inner">
