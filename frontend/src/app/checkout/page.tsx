@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -78,7 +79,12 @@ export default function Checkout() {
     }
   };
 
-  if (!checkoutData) return <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>Carregando...</div>;
+  if (!checkoutData) return (
+    <div style={{ minHeight: "100vh" }}>
+      <Navbar />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 20px" }}>Carregando...</div>
+    </div>
+  );
 
   const availableExtras = [
     { name: "Entrega rapida (+1 dia)", price: 500 },
@@ -88,6 +94,7 @@ export default function Checkout() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f7f7", fontFamily: "Inter, sans-serif" }}>
+      <Navbar />
       <style>{`
         .btn-green { background: #1dbf73; color: #fff; padding: 14px 32px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; }
         .btn-green:hover { background: #19a463; }
@@ -97,9 +104,15 @@ export default function Checkout() {
         .extra-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid #e4e5e7; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
         .extra-item:hover { border-color: #1dbf73; }
         .extra-item.selected { border-color: #1dbf73; background: #f0fdf4; }
+        .checkout-actions { display: flex; gap: 12px; }
+        @media (max-width: 640px) {
+          .checkout-wrap { padding: 16px !important; }
+          .card { padding: 16px !important; }
+          .checkout-actions { flex-direction: column-reverse; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
+      <div className="checkout-wrap" style={{ maxWidth: "800px", margin: "0 auto", padding: "24px" }}>
         <div style={{ marginBottom: "16px" }}>
           <Link href={`/gig/${checkoutData.gig.id}`} style={{ color: "#1dbf73", textDecoration: "none", fontSize: "14px" }}>← Voltar ao servico</Link>
         </div>
@@ -151,7 +164,7 @@ export default function Checkout() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: "12px" }}>
+        <div className="checkout-actions">
           <button onClick={handleConfirm} className="btn-green" disabled={loading} style={{ flex: 1 }}>
             {loading ? "A processar..." : `Confirmar e pagar (${calculateTotal()} MT)`}
           </button>

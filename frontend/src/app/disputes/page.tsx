@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -117,8 +118,16 @@ export default function DisputesPage() {
         .dispute-resolution { background: #ecfdf5; border-left: 3px solid #10b981; padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 13px; color: #065f46; margin-top: 10px; }
         .dispute-meta { font-size: 12px; color: #9ca3af; }
         .empty { text-align: center; padding: 48px; color: #6b7280; }
+        @media (max-width: 640px) {
+          .container { padding: 20px 16px !important; }
+          .card { padding: 18px !important; border-radius: 14px !important; }
+          .card-header { flex-wrap: wrap; gap: 10px; }
+          .form-actions { flex-direction: column-reverse; }
+          .dispute-top { flex-wrap: wrap; gap: 6px; }
+        }
       `}</style>
 
+      <Navbar />
       <div className="container">
         <div className="page-title">Disputas</div>
         <div className="page-sub">Abre uma disputa se tiveres algum problema com um contrato.</div>

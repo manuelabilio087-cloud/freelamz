@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -142,14 +143,17 @@ export default function Payments() {
         @media (max-width: 768px) {
           .summary-grid { grid-template-columns: 1fr; }
           .form-grid { grid-template-columns: 1fr; }
-          
+
           .container { padding: 20px 16px; }
-          .payment-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+          .page-header { flex-wrap: wrap; gap: 12px; }
+          .form-card { padding: 18px; }
+          .payment-row { grid-template-columns: 1fr; gap: 6px; padding: 16px; text-align: left; }
           .payment-header { display: none; }
+          .payment-row > div, .payment-row > span { width: 100%; }
         }
       `}</style>
 
-      
+      <Navbar />
 
       <div className="container">
         <div className="page-header">

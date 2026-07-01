@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -66,12 +67,17 @@ export default function Orders() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f7f7", fontFamily: "Inter, sans-serif" }}>
+      <Navbar />
       <style>{`
         .btn-green { background: #1dbf73; color: #fff; padding: 10px 20px; border-radius: 6px; font-weight: 600; border: none; cursor: pointer; }
         .card { background: #fff; border: 1px solid #e4e5e7; border-radius: 12px; padding: 20px; }
+        @media (max-width: 640px) {
+          .orders-wrap { padding: 16px !important; }
+          .card { padding: 14px !important; }
+        }
       `}</style>
 
-      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "24px" }}>
+      <div className="orders-wrap" style={{ maxWidth: "1000px", margin: "0 auto", padding: "24px" }}>
         <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "24px" }}>Meus pedidos</h1>
 
         {loading ? (
