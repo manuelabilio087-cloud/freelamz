@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -108,13 +109,15 @@ export default function Profile() {
         .btn-change { background: none; border: 1px solid #e4e5e7; padding: 8px 16px; border-radius: 4px; font-size: 13px; cursor: pointer; color: #404145; }
         .btn-change:hover { background: #f5f5f5; }
         @media (max-width: 768px) {
-          .container { grid-template-columns: 1fr; }
-          
+          .container { grid-template-columns: 1fr; margin: 16px auto; padding: 0 16px; }
           .info-row { grid-template-columns: 1fr; }
+          .tab-body { padding: 18px; }
+          .tabs { overflow-x: auto; }
+          .tab { padding: 14px 16px; white-space: nowrap; }
         }
       `}</style>
 
-      
+      <Navbar />
 
       <div className="container">
         {/* SIDEBAR */}

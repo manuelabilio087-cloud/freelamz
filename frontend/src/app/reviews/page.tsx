@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -145,7 +146,7 @@ function ReviewsContent() {
         }
       `}</style>
 
-      
+      <Navbar />
 
       <div className="container">
         <div className="card">

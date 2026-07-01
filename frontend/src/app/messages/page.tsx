@@ -90,6 +90,8 @@ export default function Messages() {
         
         .logo { font-size: 20px; font-weight: 700; color: #000; }
         .logo span { color: #1dbf73; }
+        .page-topbar { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-bottom: 1px solid #e4e5e7; flex-shrink: 0; background: #fff; }
+        .page-topbar a { display: flex; align-items: center; color: #404145; }
         .chat-container { display: flex; flex: 1; overflow: hidden; }
         .sidebar { width: 320px; border-right: 1px solid #e4e5e7; display: flex; flex-direction: column; flex-shrink: 0; background: #fff; }
         .sidebar-header { padding: 16px 20px; border-bottom: 1px solid #e4e5e7; display: flex; align-items: center; gap: 10px; }
@@ -124,6 +126,7 @@ export default function Messages() {
         .empty-chat { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #74767e; gap: 12px; background: #f9f9f9; }
         .empty-chat h3 { font-size: 16px; font-weight: 600; color: #404145; }
         .empty-conv { padding: 40px 20px; text-align: center; color: #74767e; font-size: 14px; }
+        @media (min-width: 769px) { .page-topbar { display: none; } }
         @media (max-width: 768px) {
           .sidebar { display: none; position: absolute; top: 56px; left: 0; width: 100%; height: calc(100dvh - 56px); z-index: 50; }
           .sidebar.show { display: flex; }
@@ -133,7 +136,14 @@ export default function Messages() {
       `}</style>
 
       <div className="page">
-        
+        {!selected && (
+          <div className="page-topbar">
+            <Link href="/dashboard">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#404145" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+            </Link>
+            <span className="logo">Freel<span>amz</span></span>
+          </div>
+        )}
 
         <div className="chat-container">
           {/* SIDEBAR */}

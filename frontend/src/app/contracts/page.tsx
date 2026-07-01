@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ReviewModal from "../../components/ReviewModal";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -48,11 +49,14 @@ export default function ContractsPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#f4f5f7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ minHeight: "100vh", background: "#f4f5f7" }}>
+      <Navbar />
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{ textAlign: "center" }}>
-        <i className="ti ti-loader" style={{ fontSize: "32px", color: "#6366f1", animation: "spin 1s linear infinite" }} aria-hidden="true"></i>
-        <p style={{ marginTop: "12px", color: "#6b7280", fontSize: "14px" }}>A carregar contratos...</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 20px" }}>
+        <div style={{ textAlign: "center" }}>
+          <i className="ti ti-loader" style={{ fontSize: "32px", color: "#6366f1", animation: "spin 1s linear infinite" }} aria-hidden="true"></i>
+          <p style={{ marginTop: "12px", color: "#6b7280", fontSize: "14px" }}>A carregar contratos...</p>
+        </div>
       </div>
     </div>
   );
@@ -115,6 +119,7 @@ export default function ContractsPage() {
         />
       )}
 
+      <Navbar />
       <div className="wrap fade">
         <h1 className="page-title">Meus contratos</h1>
         <p className="page-sub">Gerencia os teus projetos em andamento e concluidos</p>
