@@ -179,4 +179,34 @@ const getGigById = async (req, res) => {
   }
 };
 
-module.exports = { createGig, getGigs, getFeaturedGigs, getGigById };
+module.exports = { createGig, getGigs, getFeaturedGigs, getGigById, getAllGigsAdmin, deleteGig };
+
+async function getAllGigsAdmin(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT g.*, u.name as freelancer_name, u.avatar as freelancer_avatar,
+        (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) as starting_price
+       FROM gigs g
+       JOIN users u ON g.freelancer_id = u.id
+       ORDER BY g.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao listar gigs (admin):', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+}
+
+async function deleteGig(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM gigs WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Gig não encontrado.' });
+    }
+    res.json({ message: 'Gig removido com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao remover gig:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+}

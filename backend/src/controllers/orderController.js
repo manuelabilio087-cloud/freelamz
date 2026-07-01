@@ -370,4 +370,23 @@ const acceptDelivery = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, getOrders, getOrderById, updateOrderStatus, deliverOrder, requestRevision, acceptDelivery };
+module.exports = { createOrder, getOrders, getOrderById, updateOrderStatus, deliverOrder, requestRevision, acceptDelivery, getAllOrdersAdmin };
+
+async function getAllOrdersAdmin(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT o.*, g.title as gig_title, g.image as gig_image,
+        u1.name as client_name, u1.avatar as client_avatar,
+        u2.name as freelancer_name, u2.avatar as freelancer_avatar
+       FROM orders o
+       JOIN gigs g ON o.gig_id = g.id
+       JOIN users u1 ON o.client_id = u1.id
+       JOIN users u2 ON o.freelancer_id = u2.id
+       ORDER BY o.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao listar encomendas (admin):', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+}

@@ -73,4 +73,18 @@ const sendProposal = async (req, res) => {
   }
 };
 
-module.exports = { createProject, getProjects, getProjectById, sendProposal };
+module.exports = { createProject, getProjects, getProjectById, sendProposal, deleteProject };
+
+async function deleteProject(req, res) {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM projects WHERE id = $1 RETURNING id', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Projeto não encontrado.' });
+    }
+    res.json({ message: 'Projeto removido com sucesso.' });
+  } catch (err) {
+    console.error('Erro ao remover projeto:', err);
+    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
+  }
+}

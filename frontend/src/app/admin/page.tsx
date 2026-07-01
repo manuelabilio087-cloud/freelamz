@@ -71,20 +71,25 @@ export default function AdminPanel() {
   const loadAll = async () => {
     try {
       const [uR, gR, pR, oR, rR, dR] = await Promise.all([
-        fetch(`${API_URL}/users/all`, { headers: authH() }),
-        fetch(`${API_URL}/gigs`, { headers: authH() }),
+        fetch(`${API_URL}/users/all?limit=100`, { headers: authH() }),
+        fetch(`${API_URL}/gigs/admin/all`, { headers: authH() }),
         fetch(`${API_URL}/projects`, { headers: authH() }),
-        fetch(`${API_URL}/orders`, { headers: authH() }),
+        fetch(`${API_URL}/orders/admin/all`, { headers: authH() }),
         fetch(`${API_URL}/subscriptions/revenue`, { headers: authH() }),
         fetch(`${API_URL}/disputes/all`, { headers: authH() }),
       ]);
       const [uD, gD, pD, oD, rD, dD] = await Promise.all([uR.json(), gR.json(), pR.json(), oR.json(), rR.json(), dR.json()]);
-      setUsers(Array.isArray(uD) ? uD : []);
+      // getAllUsers devolve { users, total, page, limit } (paginado), nao um array simples
+      const usersArr = Array.isArray(uD) ? uD : Array.isArray(uD?.users) ? uD.users : [];
+      setUsers(usersArr);
       setGigs(Array.isArray(gD) ? gD : []);
       setProjects(Array.isArray(pD) ? pD : []);
       setOrders(Array.isArray(oD) ? oD : []);
       if (rR.ok) setRevenue(rD);
       setDisputes(Array.isArray(dD) ? dD : []);
+      if (!uR.ok || !gR.ok || !pR.ok || !oR.ok || !dR.ok) {
+        console.error("Um ou mais pedidos ao servidor falharam", { uR: uR.status, gR: gR.status, pR: pR.status, oR: oR.status, dR: dR.status });
+      }
     } catch (e) { console.error(e); }
     setLoading(false);
   };
