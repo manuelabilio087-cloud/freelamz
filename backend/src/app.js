@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
+const helmet = require('helmet');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
 const authRoutes = require('./routes/authRoutes');
@@ -78,6 +79,10 @@ io.on('connection', (socket) => {
 });
 
 app.set('io', io);
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 app.use(cors({
   origin: ['https://freelamz-frontend.vercel.app', 'http://localhost:3000'],
