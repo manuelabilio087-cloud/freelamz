@@ -20,3 +20,7 @@ build/
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Base de dados local (produção usa Postgres via DATABASE_URL)
+database/freelamz.db
+*.db
