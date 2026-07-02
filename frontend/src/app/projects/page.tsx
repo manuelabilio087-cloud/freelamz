@@ -68,6 +68,7 @@ export default function Projects() {
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
   const [user, setUser] = useState<any>(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const u = localStorage.getItem("user");
@@ -160,11 +161,19 @@ export default function Projects() {
         .skeleton { background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
         @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         .skel-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px 22px; }
+        .nav-burger { display: none; background: transparent; border: none; color: #111827; cursor: pointer; padding: 4px; }
+        .mob-menu-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.5); }
+        .mob-menu { position: absolute; top: 0; right: 0; width: 260px; max-width: 85vw; height: 100%; background: #fff; padding: 20px; }
+        .mob-menu a { display: block; padding: 14px 8px; color: #111827; font-size: 15px; font-weight: 500; border-bottom: 1px solid #f3f4f6; }
         @media (max-width: 768px) {
           .body-wrap { grid-template-columns: 1fr; }
           .sidebar { position: static; }
           .hdr-nav { display: none; }
+          .nav-burger { display: flex; }
           .hero-stats { gap: 16px; }
+          .hdr-actions { gap: 6px; }
+          .btn-publish span { display: none; }
+          .btn-publish { padding: 8px 10px; }
         }
       `}</style>
 
@@ -183,11 +192,30 @@ export default function Projects() {
               {user ? user.name?.split(" ")[0] : "Entrar"}
             </button>
             <button className="btn-publish" onClick={() => router.push("/projects/new")}>
-              <PlusIcon /> Publicar projecto
+              <PlusIcon /> <span>Publicar projecto</span>
+            </button>
+            <button className="nav-burger" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
           </div>
         </div>
       </header>
+
+      {mobileOpen && (
+        <div className="mob-menu-overlay" onClick={() => setMobileOpen(false)}>
+          <div className="mob-menu" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <LOGO />
+              <button onClick={() => setMobileOpen(false)} style={{ background: "transparent", border: "none", color: "#111827", cursor: "pointer" }} aria-label="Fechar menu">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+            <a href="/projects" onClick={() => setMobileOpen(false)}>Projectos</a>
+            <a href="/freelancers" onClick={() => setMobileOpen(false)}>Freelancers</a>
+            <a href="/pricing" onClick={() => setMobileOpen(false)}>Planos</a>
+          </div>
+        </div>
+      )}
 
       <section className="hero-band">
         <div className="hero-inner">

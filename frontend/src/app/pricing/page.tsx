@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -128,7 +129,7 @@ export default function Pricing() {
         }
       `}</style>
 
-      
+      <Navbar />
 
       <div className="hero">
         <h1>Planos e Preços</h1>

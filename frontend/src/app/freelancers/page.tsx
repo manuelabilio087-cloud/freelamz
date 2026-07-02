@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
@@ -181,6 +182,8 @@ export default function FreelancersPage() {
         @media(max-width:960px){.grid{grid-template-columns:repeat(2,1fr)}.skel-grid{grid-template-columns:repeat(2,1fr)}.filter-panel{grid-template-columns:1fr 1fr}.hero-stats{gap:20px}}
         @media(max-width:600px){.grid{grid-template-columns:1fr}.skel-grid{grid-template-columns:1fr}.hero h1{font-size:28px}.filter-panel{grid-template-columns:1fr}.hero-stats{flex-wrap:wrap;gap:14px}}
       `}</style>
+
+      <Navbar />
 
       <div className="hero">
         <div className="hero-inner">

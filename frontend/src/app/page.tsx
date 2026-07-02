@@ -30,10 +30,13 @@ const FbIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="curre
 const IgIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>;
 const LiIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>;
 const XIcon = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25z"/></svg>;
+const MenuIcon = () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+const CloseIcon = () => <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 
 export default function Home() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSearch = () => {
     if (search.trim()) router.push(`/projects?search=${encodeURIComponent(search)}`);
@@ -130,8 +133,13 @@ export default function Home() {
         .socials { display: flex; gap: 16px; align-items: center; }
         .social-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-light); transition: all 0.15s; cursor: pointer; }
         .social-btn:hover { border-color: var(--green); color: var(--green); }
+        .nav-burger { display: none; background: transparent; border: none; color: #1a1a1a; cursor: pointer; padding: 4px; }
+        .mobile-menu-overlay { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.5); }
+        .mobile-menu { position: absolute; top: 0; right: 0; width: 280px; max-width: 85vw; height: 100%; background: #fff; padding: 20px; overflow-y: auto; }
+        .mobile-menu a, .mobile-menu-btn { display: block; padding: 14px 8px; color: var(--text); text-decoration: none; font-size: 15px; font-weight: 500; border-bottom: 1px solid var(--border); }
         @media (max-width: 768px) {
           .nav-links { display: none; }
+          .nav-burger { display: flex; }
           .header-inner { padding: 12px 16px; }
           .pro-section { margin: 0 16px 24px; padding: 40px 20px; }
           .footer-bottom { flex-direction: column; align-items: flex-start; }
@@ -153,8 +161,35 @@ export default function Home() {
             <Link href="/login">Entrar</Link>
             <Link href="/register"><button className="btn-register">Registar</button></Link>
           </nav>
+          <button className="nav-burger" onClick={() => setMobileOpen(true)} aria-label="Abrir menu">
+            <MenuIcon />
+          </button>
         </div>
       </header>
+
+      {mobileOpen && (
+        <div className="mobile-menu-overlay" onClick={() => setMobileOpen(false)}>
+          <div className="mobile-menu" onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <Logo />
+              <button onClick={() => setMobileOpen(false)} style={{ background: "transparent", border: "none", color: "#1a1a1a", cursor: "pointer" }} aria-label="Fechar menu">
+                <CloseIcon />
+              </button>
+            </div>
+            <Link href="/projects" onClick={() => setMobileOpen(false)}>Projectos</Link>
+            <Link href="/freelancers" onClick={() => setMobileOpen(false)}>Freelancers</Link>
+            <Link href="/pricing" onClick={() => setMobileOpen(false)}>Planos</Link>
+            <Link href="/login" onClick={() => setMobileOpen(false)}>Entrar</Link>
+            <Link
+              href="/register"
+              onClick={() => setMobileOpen(false)}
+              style={{ marginTop: "12px", textAlign: "center", background: "#6366f1", color: "#fff", borderRadius: "8px", border: "none", fontWeight: 600 }}
+            >
+              Registar
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="sub-nav">
         <div className="sub-nav-inner">
