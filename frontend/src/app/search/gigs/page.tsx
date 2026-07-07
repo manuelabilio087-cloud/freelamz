@@ -49,6 +49,7 @@ function SearchGigsInner() {
   const [maxDeliveryDays, setMaxDeliveryDays] = useState(searchParams.get("max_delivery_days") || "");
   const [minRating, setMinRating] = useState(searchParams.get("min_rating") || "");
   const [sort, setSort] = useState(searchParams.get("sort") || "newest");
+  const freelancerId = searchParams.get("freelancer_id") || "";
 
   useEffect(() => {
     fetchCategories();
@@ -80,6 +81,7 @@ function SearchGigsInner() {
       if (maxDeliveryDays) params.append("max_delivery_days", maxDeliveryDays);
       if (minRating) params.append("min_rating", minRating);
       if (sort) params.append("sort", sort);
+      if (freelancerId) params.append("freelancer_id", freelancerId);
 
       const res = await fetch(`${API_URL}/gigs?${params.toString()}`);
       const data = await res.json();

@@ -218,18 +218,18 @@ const sendNewsletter = async (req, res) => {
 const getFreelancerStats = async (req, res) => {
   try {
     const userId = req.user.id;
-    const [proposals, accepted, ongoing, completed, earnings, rating, unread] = await Promise.all([
-      pool.query('SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1', [userId]),
-      pool.query("SELECT COUNT(*) as total FROM proposals WHERE freelancer_id = $1 AND status = 'accepted'", [userId]),
-      pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'in_progress'", [userId]),
-      pool.query("SELECT COUNT(*) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
-      pool.query("SELECT COALESCE(SUM(budget), 0) as total FROM projects WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
-      pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM reviews WHERE reviewee_id = $1', [userId]),
+    // FIX: estatisticas migradas do modelo antigo (projects/proposals) para o
+    // modelo de servicos/gigs (estilo Fiverr): gigs publicados e encomendas.
+    const [gigsCount, ongoing, completed, earnings, rating, unread] = await Promise.all([
+      pool.query('SELECT COUNT(*) as total FROM gigs WHERE freelancer_id = $1', [userId]),
+      pool.query("SELECT COUNT(*) as total FROM orders WHERE freelancer_id = $1 AND status IN ('pending','in_progress','revision_requested','delivered')", [userId]),
+      pool.query("SELECT COUNT(*) as total FROM orders WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
+      pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
+      pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.freelancer_id = $1', [userId]),
       pool.query('SELECT COUNT(*) as total FROM messages WHERE receiver_id = $1 AND is_read = false', [userId]),
     ]);
     res.json({
-      proposals: parseInt(proposals.rows[0].total),
-      accepted: parseInt(accepted.rows[0].total),
+      gigs: parseInt(gigsCount.rows[0].total),
       ongoing: parseInt(ongoing.rows[0].total),
       completed: parseInt(completed.rows[0].total),
       earnings: parseInt(earnings.rows[0].total),

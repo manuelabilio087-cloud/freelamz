@@ -301,7 +301,7 @@ export default function Dashboard() {
                 <div className="empty">
                   <IconClock />
                   <p style={{marginTop:"12px"}}>Os teus projectos em andamento aparecerao aqui.</p>
-                  <button className="btn-outline" style={{marginTop:"16px"}} onClick={() => router.push("/projects")}>Encontrar projectos</button>
+                  <button className="btn-outline" style={{marginTop:"16px"}} onClick={() => router.push("/search/gigs")}>Explorar servicos</button>
                 </div>
               )}
             </div>

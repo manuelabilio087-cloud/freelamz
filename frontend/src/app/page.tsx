@@ -39,7 +39,7 @@ export default function Home() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleSearch = () => {
-    if (search.trim()) router.push(`/projects?search=${encodeURIComponent(search)}`);
+    if (search.trim()) router.push(`/search/gigs?search=${encodeURIComponent(search)}`);
   };
 
   const categories = [
@@ -155,7 +155,7 @@ export default function Home() {
         <div className="header-inner">
           <Link href="/"><Logo /></Link>
           <nav className="nav-links">
-            <Link href="/projects">Projectos</Link>
+            <Link href="/search/gigs">Servicos</Link>
             <Link href="/freelancers">Freelancers</Link>
             <Link href="/pricing">Planos</Link>
             <Link href="/login">Entrar</Link>
@@ -176,7 +176,7 @@ export default function Home() {
                 <CloseIcon />
               </button>
             </div>
-            <Link href="/projects" onClick={() => setMobileOpen(false)}>Projectos</Link>
+            <Link href="/search/gigs" onClick={() => setMobileOpen(false)}>Servicos</Link>
             <Link href="/freelancers" onClick={() => setMobileOpen(false)}>Freelancers</Link>
             <Link href="/pricing" onClick={() => setMobileOpen(false)}>Planos</Link>
             <Link href="/login" onClick={() => setMobileOpen(false)}>Entrar</Link>
@@ -194,7 +194,7 @@ export default function Home() {
       <div className="sub-nav">
         <div className="sub-nav-inner">
           {["Em alta","Design Grafico","Programacao","Marketing Digital","Video","Redacao","Musica","Negocios","Servicos de IA"].map((t,i) => (
-            <span key={i} onClick={() => router.push(`/projects?search=${encodeURIComponent(t)}`)}>
+            <span key={i} onClick={() => router.push(`/search/gigs?search=${encodeURIComponent(t)}`)}>
               {i === 0 ? "🔥 " + t : t}
             </span>
           ))}
@@ -210,7 +210,7 @@ export default function Home() {
           </div>
           <div className="hero-tags">
             {["Desenvolvimento Web","Design Grafico","Edicao de Video","Marketing Digital","Redacao"].map((t,i) => (
-              <span key={i} className="hero-tag" onClick={() => router.push(`/projects?search=${encodeURIComponent(t)}`)}>
+              <span key={i} className="hero-tag" onClick={() => router.push(`/search/gigs?search=${encodeURIComponent(t)}`)}>
                 {t} →
               </span>
             ))}
@@ -231,7 +231,7 @@ export default function Home() {
         <div className="section-title">Categorias Populares</div>
         <div className="cat-grid">
           {categories.map((c,i) => (
-            <div key={i} className="cat-card" onClick={() => router.push(`/projects?search=${encodeURIComponent(c.name)}`)}>
+            <div key={i} className="cat-card" onClick={() => router.push(`/search/gigs?search=${encodeURIComponent(c.name)}`)}>
               <div className="cat-icon-wrap" style={{ background: c.color, color: c.stroke }}>{c.icon}</div>
               {c.name}
             </div>
@@ -265,7 +265,7 @@ export default function Home() {
       <section className="guides-section">
         <div className="guides-header">
           <div className="section-title" style={{ marginBottom: 0 }}>Guias para ajudar voce a crescer</div>
-          <Link href="/projects" style={{ fontSize: "14px", fontWeight: "500", color: "var(--text)" }}>Ver mais →</Link>
+          <Link href="/search/gigs" style={{ fontSize: "14px", fontWeight: "500", color: "var(--text)" }}>Ver mais →</Link>
         </div>
         <div className="guides-grid">
           {[
@@ -286,7 +286,7 @@ export default function Home() {
           <div className="footer-columns">
             {[
               { title: "Categorias", links: ["Design Grafico","Marketing Digital","Video","Musica","Programacao","IA","Negocios"] },
-              { title: "Para clientes", links: ["Como funciona","Historias de sucesso","Navegar freelancers","Publicar projecto"] },
+              { title: "Para clientes", links: ["Como funciona","Historias de sucesso","Navegar freelancers","Explorar servicos"] },
               { title: "Para freelancers", links: ["Torne-se freelancer","Comunidade","Forum","Eventos"] },
               { title: "Empresa", links: ["Sobre o Freelamz","Central de Ajuda","Seguranca","Carreiras","Termos","Privacidade"] },
             ].map((col,i) => (

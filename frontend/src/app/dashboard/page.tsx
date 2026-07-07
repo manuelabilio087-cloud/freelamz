@@ -7,7 +7,8 @@ const API_URL = "https://freelamz-production.up.railway.app/api";
 export default function Dashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [gigs, setGigs] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [myPlan, setMyPlan] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -26,15 +27,18 @@ export default function Dashboard() {
   const loadData = async () => {
     const token = localStorage.getItem("token");
     try {
-      const [pR, sR, plR] = await Promise.all([
-        fetch(`${API_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } }),
+      const [gR, oR, sR, plR] = await Promise.all([
+        fetch(`${API_URL}/gigs/my`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/orders?role=selling`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/users/stats`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/subscriptions/my-plan`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      const pD = await pR.json();
+      const gD = await gR.json();
+      const oD = await oR.json();
       const sD = await sR.json();
       const plD = await plR.json();
-      setProjects(Array.isArray(pD) ? pD : []);
+      setGigs(Array.isArray(gD) ? gD : []);
+      setOrders(Array.isArray(oD) ? oD : []);
       setStats(sD);
       setMyPlan(plD);
     } catch {}
@@ -54,9 +58,6 @@ export default function Dashboard() {
   };
 
   const isPro = myPlan?.plan === "pro";
-  const pUsed = myPlan?.proposals_used || 0;
-  const pLimit = myPlan?.proposals_limit || 3;
-  const compRate = stats?.proposals > 0 ? Math.round((stats.completed / stats.proposals) * 100) : 0;
 
   const bg = dark ? "#0d0f14" : "#f4f5f7";
   const surf = dark ? "#161920" : "#ffffff";
@@ -69,7 +70,8 @@ export default function Dashboard() {
 
   const navItems = [
     { id: "overview", label: "Visao Geral" },
-    { id: "projects", label: "Projectos" },
+    { id: "gigs", label: "Os meus Servicos" },
+    { id: "orders", label: "Encomendas" },
     { id: "profile", label: "Perfil" },
   ];
 
@@ -92,19 +94,53 @@ export default function Dashboard() {
     </div>
   );
 
-  const ProjectRow = ({ p }: { p: any }) => (
-    <div
-      onClick={() => router.push(`/projects/${p.id}`)}
-      style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, marginBottom: 8, cursor: "pointer" }}
-    >
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 3 }}>{p.title}</div>
-        <div style={{ fontSize: 12, color: sub }}>{p.category || "Geral"} · {p.client_name || "Cliente"}</div>
+  const GigRow = ({ g }: { g: any }) => {
+    const statusMap: any = {
+      active: { label: "Activo", bg: dark ? "#0a2018" : "#ecfdf5", col: dark ? "#6ee7b7" : "#065f46" },
+      paused: { label: "Pausado", bg: dark ? "#271c00" : "#fffbeb", col: dark ? "#fcd34d" : "#92400e" },
+      draft: { label: "Rascunho", bg: surf2, col: sub },
+    };
+    const st = statusMap[g.status] || statusMap.active;
+    return (
+      <div
+        onClick={() => router.push(`/gig/${g.id}`)}
+        style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, marginBottom: 8, cursor: "pointer" }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</div>
+          <div style={{ fontSize: 12, color: sub }}>{g.category || "Geral"} · {g.orders_count || 0} encomendas</div>
+        </div>
+        <span style={{ background: st.bg, color: st.col, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: txt, whiteSpace: "nowrap" }}>{g.starting_price ? `${Number(g.starting_price).toLocaleString()} MT` : "—"}</span>
       </div>
-      <span style={{ background: dark ? "#0a2018" : "#ecfdf5", color: dark ? "#6ee7b7" : "#065f46", padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>Aberto</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: txt }}>{p.budget ? `${Number(p.budget).toLocaleString()} MT` : "A negociar"}</span>
-    </div>
-  );
+    );
+  };
+
+  const orderStatusMap: any = {
+    pending: { label: "Pendente", bg: dark ? "#271c00" : "#fffbeb", col: dark ? "#fcd34d" : "#92400e" },
+    in_progress: { label: "Em progresso", bg: accB, col: accT },
+    revision_requested: { label: "Revisao pedida", bg: dark ? "#271c00" : "#fffbeb", col: dark ? "#fcd34d" : "#92400e" },
+    delivered: { label: "Entregue", bg: accB, col: accT },
+    completed: { label: "Concluida", bg: dark ? "#0a2018" : "#ecfdf5", col: dark ? "#6ee7b7" : "#065f46" },
+    cancelled: { label: "Cancelada", bg: dark ? "#2a0f0f" : "#fef2f2", col: dark ? "#fca5a5" : "#991b1b" },
+  };
+
+  const OrderRow = ({ o }: { o: any }) => {
+    const st = orderStatusMap[o.status] || { label: o.status, bg: surf2, col: sub };
+    return (
+      <div
+        onClick={() => router.push(`/orders/${o.id}`)}
+        style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, marginBottom: 8, cursor: "pointer" }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.gig_title || `Encomenda #${o.id}`}</div>
+          <div style={{ fontSize: 12, color: sub }}>{o.client_name || "Cliente"}</div>
+        </div>
+        <span style={{ background: st.bg, color: st.col, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: txt, whiteSpace: "nowrap" }}>{o.total_amount ? `${Number(o.total_amount).toLocaleString()} MT` : "—"}</span>
+      </div>
+    );
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: bg, fontFamily: "Inter, sans-serif" }}>
@@ -176,11 +212,14 @@ export default function Dashboard() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <span style={{ fontSize: 15, fontWeight: 600, color: txt }}>
-              {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Freelancer"} 👋` : tab === "projects" ? "Projectos" : "Perfil"}
+              {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Freelancer"} 👋` : tab === "gigs" ? "Os meus Servicos" : tab === "orders" ? "Encomendas" : "Perfil"}
             </span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {isPro && <span style={{ background: dark ? "#1e1030" : "#f5f3ff", color: dark ? "#c4b5fd" : "#5b21b6", padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600 }}>✦ Pro</span>}
+            <button onClick={() => router.push("/create-gig")} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#6366f1", fontSize: 13, cursor: "pointer", color: "#fff", fontWeight: 600 }}>
+              + Publicar Servico
+            </button>
             <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500 }}>
               Mensagens
             </button>
@@ -193,10 +232,7 @@ export default function Dashboard() {
               {!isPro && (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13.5, fontWeight: 600, color: txt, marginBottom: 4 }}>Plano Gratuito — {pUsed}/{pLimit} propostas usadas</div>
-                    <div style={{ height: 4, background: bord, borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${Math.min((pUsed / pLimit) * 100, 100)}%`, background: "#8b5cf6", borderRadius: 2 }} />
-                    </div>
+                    <div style={{ fontSize: 13.5, fontWeight: 600, color: txt, marginBottom: 4 }}>Plano Gratuito — desbloqueia mais destaque para os teus servicos</div>
                   </div>
                   <button onClick={() => router.push("/pricing")} style={{ background: "#8b5cf6", color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                     Upgrade Pro
@@ -206,10 +242,10 @@ export default function Dashboard() {
 
               <div className="dash-stats-grid">
                 {[
-                  { label: "Propostas enviadas", value: stats?.proposals || 0, sub: `${stats?.accepted || 0} aceites` },
-                  { label: "Concluidos", value: stats?.completed || 0, sub: `${compRate}% sucesso` },
+                  { label: "Servicos publicados", value: stats?.gigs || 0, sub: `${gigs.length} activos` },
+                  { label: "Em andamento", value: stats?.ongoing || 0, sub: "encomendas" },
+                  { label: "Concluidas", value: stats?.completed || 0, sub: "encomendas" },
                   { label: "Ganhos (MT)", value: stats?.earnings ? Number(stats.earnings).toLocaleString() : "0", sub: "acumulados" },
-                  { label: "Avaliacao", value: stats?.rating || "—", sub: "media" },
                 ].map((s, i) => (
                   <div key={i} style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 18 }}>
                     <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 500 }}>{s.label}</div>
@@ -220,27 +256,68 @@ export default function Dashboard() {
               </div>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Projectos disponiveis</span>
-                <button onClick={() => router.push("/projects")} style={{ background: "none", border: "none", color: accT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ver todos →</button>
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Os teus servicos</span>
+                <button onClick={() => setTab("gigs")} style={{ background: "none", border: "none", color: accT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ver todos →</button>
               </div>
 
               {loading ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
-              ) : projects.slice(0, 5).map((p, i) => <ProjectRow key={i} p={p} />)}
+              ) : gigs.length === 0 ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 40, textAlign: "center", color: sub }}>
+                  <p style={{ marginBottom: 16 }}>Ainda nao publicaste nenhum servico.</p>
+                  <button onClick={() => router.push("/create-gig")} style={{ background: "#6366f1", color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+                    Publicar primeiro servico
+                  </button>
+                </div>
+              ) : gigs.slice(0, 5).map((g, i) => <GigRow key={i} g={g} />)}
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "24px 0 12px" }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Encomendas recentes</span>
+                <button onClick={() => setTab("orders")} style={{ background: "none", border: "none", color: accT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ver todas →</button>
+              </div>
+
+              {loading ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
+              ) : orders.length === 0 ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>Ainda sem encomendas.</div>
+              ) : orders.slice(0, 5).map((o, i) => <OrderRow key={i} o={o} />)}
             </>
           )}
 
-          {tab === "projects" && (
+          {tab === "gigs" && (
             <>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Todos os projectos</span>
-                <button onClick={() => router.push("/projects")} style={{ background: "#6366f1", color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Todos os meus servicos ({gigs.length})</span>
+                <button onClick={() => router.push("/create-gig")} style={{ background: "#6366f1", color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                  + Publicar Servico
+                </button>
+              </div>
+              {loading ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
+              ) : gigs.length === 0 ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 40, textAlign: "center", color: sub }}>
+                  <p style={{ marginBottom: 16 }}>Nenhum servico publicado ainda.</p>
+                  <button onClick={() => router.push("/create-gig")} style={{ background: "#6366f1", color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+                    Publicar agora
+                  </button>
+                </div>
+              ) : gigs.map((g, i) => <GigRow key={i} g={g} />)}
+            </>
+          )}
+
+          {tab === "orders" && (
+            <>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Todas as encomendas ({orders.length})</span>
+                <button onClick={() => router.push("/orders")} style={{ background: "#6366f1", color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
                   Ver pagina completa →
                 </button>
               </div>
               {loading ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
-              ) : projects.map((p, i) => <ProjectRow key={i} p={p} />)}
+              ) : orders.length === 0 ? (
+                <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 40, textAlign: "center", color: sub }}>Ainda sem encomendas.</div>
+              ) : orders.map((o, i) => <OrderRow key={i} o={o} />)}
             </>
           )}
 

@@ -1,30 +1,12 @@
 const pool = require('../config/db');
 
 const createProject = async (req, res) => {
-  const { title, description, budget, category, deadline, image_url } = req.body;
-
-  try {
-    const result = await pool.query(
-      'INSERT INTO projects (title, description, budget, category, deadline, image_url, client_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [title, description, budget, category, deadline || null, image_url || null, req.user.id]
-    );
-
-    const project = result.rows[0];
-
-    // Buscar o nome do cliente
-    const clientResult = await pool.query(
-      'SELECT name FROM users WHERE id = $1',
-      [req.user.id]
-    );
-
-    res.status(201).json({
-      ...project,
-      client_name: clientResult.rows[0]?.name || 'Cliente'
-    });
-  } catch (err) {
-    console.error('Erro ao criar projeto:', err);
-    res.status(500).json({ message: 'Erro no servidor.', error: err.message });
-  }
+  // FIX: modelo "projectos" (estilo Upwork) descontinuado - a plataforma agora
+  // usa o modelo de servicos/gigs (estilo Fiverr): so freelancers publicam,
+  // clientes encomendam directamente.
+  return res.status(410).json({
+    message: 'A publicacao de projectos foi descontinuada. Os freelancers publicam servicos (gigs) e os clientes encomendam directamente.',
+  });
 };
 
 const getProjects = async (req, res) => {

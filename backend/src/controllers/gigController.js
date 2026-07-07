@@ -1,8 +1,13 @@
 const pool = require('../config/db');
 
 const createGig = async (req, res) => {
-  const { title, category, description, image, tags, packages } = req.body;
+  const { title, category, category_id, description, image, tags, packages } = req.body;
   const freelancer_id = req.user.id;
+
+  // FIX: Apenas freelancers podem publicar servicos (gigs)
+  if (req.user.role !== 'freelancer') {
+    return res.status(403).json({ message: 'Apenas freelancers podem publicar servicos.' });
+  }
 
   // FIX: Validação de input
   if (!title || !category || !description) {
@@ -17,8 +22,8 @@ const createGig = async (req, res) => {
     await client.query('BEGIN');
 
     const gigResult = await client.query(
-      'INSERT INTO gigs (freelancer_id, title, category, description, image, tags) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [freelancer_id, title, category, description, image, tags]
+      'INSERT INTO gigs (freelancer_id, title, category, category_id, description, image, tags) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [freelancer_id, title, category, category_id || null, description, image, tags]
     );
     const gig = gigResult.rows[0];
 
@@ -43,7 +48,7 @@ const createGig = async (req, res) => {
 
 const getGigs = async (req, res) => {
   try {
-    const { category, category_slug, min_price, max_price, search, min_rating, max_delivery_days, sort } = req.query;
+    const { category, category_slug, min_price, max_price, search, min_rating, max_delivery_days, sort, freelancer_id } = req.query;
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const offset = (page - 1) * limit;
@@ -62,6 +67,11 @@ const getGigs = async (req, res) => {
     const params = [];
     let paramCount = 0;
 
+    if (freelancer_id) {
+      paramCount++;
+      query += ` AND g.freelancer_id = $${paramCount}`;
+      params.push(freelancer_id);
+    }
     if (category) {
       paramCount++;
       query += ` AND g.category_id = $${paramCount}`;
@@ -179,7 +189,28 @@ const getGigById = async (req, res) => {
   }
 };
 
-module.exports = { createGig, getGigs, getFeaturedGigs, getGigById, getAllGigsAdmin, deleteGig };
+const getMyGigs = async (req, res) => {
+  try {
+    const freelancer_id = req.user.id;
+    const result = await pool.query(
+      `SELECT g.*,
+        (SELECT MIN(price) FROM gig_packages WHERE gig_id = g.id) as starting_price,
+        (SELECT MIN(delivery_days) FROM gig_packages WHERE gig_id = g.id) as fastest_delivery,
+        (SELECT COALESCE(AVG(rating),0) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as avg_rating,
+        (SELECT COUNT(*) FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.gig_id = g.id) as review_count
+       FROM gigs g
+       WHERE g.freelancer_id = $1
+       ORDER BY g.created_at DESC`,
+      [freelancer_id]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao listar os meus gigs:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+module.exports = { createGig, getGigs, getFeaturedGigs, getGigById, getAllGigsAdmin, deleteGig, getMyGigs };
 
 async function getAllGigsAdmin(req, res) {
   try {

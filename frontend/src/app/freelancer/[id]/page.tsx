@@ -359,9 +359,9 @@ const loadData = async () => {
                   Avaliar
                 </button>
               )}
-              <button className="btn-hire" onClick={() => router.push("/projects/new")}>
+              <button className="btn-hire" onClick={() => router.push(`/search/gigs?freelancer_id=${freelancer.id}`)}>
                 <i className="ti ti-briefcase" aria-hidden="true"></i>
-                Publicar projecto
+                Ver Servicos
               </button>
             </div>
           </div>
@@ -608,9 +608,9 @@ const loadData = async () => {
               <i className="ti ti-message-circle" aria-hidden="true"></i>
               Enviar mensagem
             </button>
-            <button className="btn-full outline" onClick={() => router.push("/projects/new")}>
+            <button className="btn-full outline" onClick={() => router.push(`/search/gigs?freelancer_id=${freelancer.id}`)}>
               <i className="ti ti-briefcase" aria-hidden="true"></i>
-              Publicar projecto
+              Ver Servicos
             </button>
           </div>
         </div>

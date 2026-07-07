@@ -67,7 +67,6 @@ export default function Navbar() {
   const navLinks = [
     { href: "/search/gigs", label: "Servicos" },
     { href: "/categories", label: "Categorias" },
-    { href: "/projects", label: "Projetos" },
     { href: "/freelancers", label: "Freelancers" },
   ];
 
@@ -113,6 +112,11 @@ export default function Navbar() {
               <Link href="/dashboard" style={{ color: COLORS.text, textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
                 Painel
               </Link>
+              {user.role === "freelancer" && (
+                <Link href="/create-gig" style={{ background: COLORS.green, color: "#fff", padding: "8px 16px", borderRadius: "8px", fontWeight: 600, fontSize: "13.5px", textDecoration: "none" }}>
+                  + Publicar Servico
+                </Link>
+              )}
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <button
                   onClick={() => setDropdownOpen((v) => !v)}
@@ -189,6 +193,11 @@ export default function Navbar() {
               ))}
               {user ? (
                 <>
+                  {user.role === "freelancer" && (
+                    <Link href="/create-gig" onClick={() => setMobileOpen(false)} style={{ marginTop: "6px", marginBottom: "6px", textAlign: "center", background: COLORS.green, color: "#fff", padding: "12px", borderRadius: "8px", fontWeight: 600, textDecoration: "none" }}>
+                      + Publicar Servico
+                    </Link>
+                  )}
                   {[
                     { href: "/dashboard", label: "Painel" },
                     { href: "/profile", label: "Meu perfil" },

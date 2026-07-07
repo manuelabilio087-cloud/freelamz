@@ -1,40 +1,94 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
+interface Category {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export default function CreateGig() {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [error, setError] = useState("");
   const [gig, setGig] = useState({
     title: "",
-    category: "",
+    categoryId: "",
+    categoryName: "",
     description: "",
+    tags: "",
+    image: "",
     price: "",
     delivery: "",
+    revisions: "1",
+    packageDescription: "",
   });
   const [loading, setLoading] = useState(false);
 
-  const categories = ["Desenvolvimento Web", "Design Grafico", "Marketing Digital", "Redacao e Traducao", "Video e Animacao", "Musica e Audio", "Servicos de IA", "Negocios"];
+  useEffect(() => {
+    const u = localStorage.getItem("user");
+    if (!u) { router.push("/login"); return; }
+    const user = JSON.parse(u);
+    if (user.role !== "freelancer") {
+      router.push("/search/gigs");
+      return;
+    }
+    setCheckingAuth(false);
+
+    fetch(`${API_URL}/categories`)
+      .then(r => r.json())
+      .then(data => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
+    setError("");
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/projects`, {
+      const res = await fetch(`${API_URL}/gigs`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ title: gig.title, description: gig.description, budget: gig.price, category: gig.category }),
+        body: JSON.stringify({
+          title: gig.title,
+          category: gig.categoryName,
+          category_id: gig.categoryId || null,
+          description: gig.description,
+          image: gig.image || null,
+          tags: gig.tags,
+          packages: [
+            {
+              type: "standard",
+              title: "Pacote Standard",
+              description: gig.packageDescription || gig.description.slice(0, 140),
+              price: Number(gig.price),
+              delivery_days: Number(gig.delivery),
+              revisions: Number(gig.revisions),
+              features: gig.tags,
+            },
+          ],
+        }),
       });
-      router.push("/verify-phone");
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Erro ao publicar o servico.");
+        setLoading(false);
+        return;
+      }
+      router.push(`/gig/${data.gig.id}`);
     } catch {
-      console.error("Erro ao criar gig");
-    } finally {
+      setError("Erro de ligacao ao servidor. Tenta novamente.");
       setLoading(false);
     }
   };
+
+  if (checkingAuth) return null;
 
   return (
     <>
@@ -66,49 +120,61 @@ export default function CreateGig() {
         .price-row .form-group { flex: 1; }
         .btn-next { width: 100%; padding: 14px; background: #1dbf73; color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 600; cursor: pointer; }
         .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+        .err-box { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
         @media (max-width: 600px) { .topbar { padding: 16px; } .price-row { flex-direction: column; } }
       `}</style>
       <div className="page">
         <div className="topbar">
           <button className="back-btn" onClick={() => step > 1 ? setStep(step - 1) : router.back()}>← Voltar</button>
           <Link href="/" className="logo">Freelamz<span>.</span></Link>
-          <span style={{fontSize:"13px", color:"#74767e"}}>{step}/3</span>
+          <span style={{fontSize:"13px", color:"#74767e"}}>{step}/4</span>
         </div>
         <div className="progress">
-          <div className="progress-bar" style={{width:`${(step/3)*100}%`}}></div>
+          <div className="progress-bar" style={{width:`${(step/4)*100}%`}}></div>
         </div>
         <div className="container">
           <div className="box">
 
+            {error && <div className="err-box">{error}</div>}
+
             {step === 1 && (
               <>
-                <p className="step-label">Passo 1 de 3</p>
-                <h1>Cria o teu primeiro Gig</h1>
-                <p>Descreve o servico que vais oferecer.</p>
+                <p className="step-label">Passo 1 de 4</p>
+                <h1>Cria o teu Servico</h1>
+                <p>Da um titulo claro e escolhe a categoria certa.</p>
                 <div className="form-group">
-                  <label>Titulo do Gig</label>
+                  <label>Titulo do Servico</label>
                   <input type="text" placeholder="Ex: Vou criar o teu website profissional" value={gig.title} onChange={e => setGig({...gig, title: e.target.value})} />
                 </div>
                 <div className="form-group">
                   <label>Categoria</label>
                 </div>
                 <div className="cat-grid">
-                  {categories.map((c, i) => (
-                    <div key={i} className={`cat-tag ${gig.category === c ? "selected" : ""}`} onClick={() => setGig({...gig, category: c})}>{c}</div>
+                  {(categories.length > 0 ? categories : []).map((c) => (
+                    <div key={c.id} className={`cat-tag ${gig.categoryId === String(c.id) ? "selected" : ""}`} onClick={() => setGig({...gig, categoryId: String(c.id), categoryName: c.name})}>{c.name}</div>
                   ))}
+                  {categories.length === 0 && <span style={{ fontSize: 13, color: "#9ca3af" }}>A carregar categorias...</span>}
                 </div>
-                <button className="btn-next" disabled={!gig.title || !gig.category} onClick={() => setStep(2)}>Continuar →</button>
+                <button className="btn-next" disabled={!gig.title || !gig.categoryId} onClick={() => setStep(2)}>Continuar →</button>
               </>
             )}
 
             {step === 2 && (
               <>
-                <p className="step-label">Passo 2 de 3</p>
+                <p className="step-label">Passo 2 de 4</p>
                 <h1>Descreve o teu servico</h1>
                 <p>Explica o que vais entregar ao cliente.</p>
                 <div className="form-group">
                   <label>Descricao</label>
                   <textarea placeholder="Descreve em detalhe o que vais fazer, o que esta incluido e o que o cliente pode esperar..." value={gig.description} onChange={e => setGig({...gig, description: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Tags / palavras-chave (opcional)</label>
+                  <input type="text" placeholder="Ex: react, logotipo, wordpress" value={gig.tags} onChange={e => setGig({...gig, tags: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Imagem de capa - URL (opcional)</label>
+                  <input type="text" placeholder="https://..." value={gig.image} onChange={e => setGig({...gig, image: e.target.value})} />
                 </div>
                 <button className="btn-next" disabled={gig.description.length < 20} onClick={() => setStep(3)}>Continuar →</button>
               </>
@@ -116,12 +182,25 @@ export default function CreateGig() {
 
             {step === 3 && (
               <>
-                <p className="step-label">Passo 3 de 3</p>
-                <h1>Define o preco</h1>
-                <p>Quanto cobras pelo teu servico?</p>
+                <p className="step-label">Passo 3 de 4</p>
+                <h1>Define o teu pacote</h1>
+                <p>Quanto cobras e o que esta incluido?</p>
+                <div className="form-group">
+                  <label>O que este pacote inclui</label>
+                  <textarea placeholder="Ex: 1 pagina, 2 revisoes, entrega do codigo fonte..." value={gig.packageDescription} onChange={e => setGig({...gig, packageDescription: e.target.value})} />
+                </div>
+                <button className="btn-next" disabled={gig.packageDescription.length < 10} onClick={() => setStep(4)}>Continuar →</button>
+              </>
+            )}
+
+            {step === 4 && (
+              <>
+                <p className="step-label">Passo 4 de 4</p>
+                <h1>Preco e prazo</h1>
+                <p>Ultimo passo antes de publicares.</p>
                 <div className="price-row">
                   <div className="form-group">
-                    <label>Preco (MZN)</label>
+                    <label>Preco (MT)</label>
                     <input type="number" placeholder="Ex: 2500" value={gig.price} onChange={e => setGig({...gig, price: e.target.value})} />
                   </div>
                   <div className="form-group">
@@ -136,8 +215,18 @@ export default function CreateGig() {
                     </select>
                   </div>
                 </div>
+                <div className="form-group">
+                  <label>Revisoes incluidas</label>
+                  <select value={gig.revisions} onChange={e => setGig({...gig, revisions: e.target.value})}>
+                    <option value="0">Sem revisoes</option>
+                    <option value="1">1 revisao</option>
+                    <option value="2">2 revisoes</option>
+                    <option value="3">3 revisoes</option>
+                    <option value="99">Revisoes ilimitadas</option>
+                  </select>
+                </div>
                 <button className="btn-next" disabled={!gig.price || !gig.delivery || loading} onClick={handleSubmit}>
-                  {loading ? "A publicar..." : "Publicar Gig →"}
+                  {loading ? "A publicar..." : "Publicar Servico →"}
                 </button>
               </>
             )}

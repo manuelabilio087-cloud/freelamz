@@ -7,7 +7,7 @@ const API_URL = "https://freelamz-production.up.railway.app/api";
 export default function ClientDashboard() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [freelancers, setFreelancers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
@@ -37,13 +37,13 @@ export default function ClientDashboard() {
   const loadData = async () => {
     const token = localStorage.getItem("token");
     try {
-      const [pR, fR] = await Promise.all([
-        fetch(`${API_URL}/projects`, { headers: { Authorization: `Bearer ${token}` } }),
+      const [oR, fR] = await Promise.all([
+        fetch(`${API_URL}/orders?role=buying`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/users/freelancers`),
       ]);
-      const pD = await pR.json();
+      const oD = await oR.json();
       const fD = await fR.json();
-      setProjects(Array.isArray(pD) ? pD : []);
+      setOrders(Array.isArray(oD) ? oD : []);
       setFreelancers(Array.isArray(fD) ? fD : []);
     } catch {}
     setLoading(false);
@@ -65,11 +65,12 @@ export default function ClientDashboard() {
   const rdB   = dark ? "#2a0f0f" : "#fef2f2";
   const grn   = "#10b981";
 
-  const myProjects    = projects.filter((p: any) => p.client_id === user?.id || p.client_name === user?.name);
-  const activeProjects = myProjects.filter((p: any) => p.status === "open" || !p.status);
+  const ongoingOrders   = orders.filter((o: any) => ["pending", "in_progress", "revision_requested", "delivered"].includes(o.status));
+  const completedOrders = orders.filter((o: any) => o.status === "completed");
+  const totalInvested   = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total_amount) || 0), 0);
 
   const navGo = (id: string) => {
-    const routes: any = { messages:"/messages", contracts:"/contracts", payments:"/payments", disputes:"/disputes", profile:"/profile" };
+    const routes: any = { messages: "/messages", contracts: "/contracts", payments: "/payments", disputes: "/disputes", profile: "/profile" };
     setMobileNavOpen(false);
     if (routes[id]) { router.push(routes[id]); return; }
     setTab(id);
@@ -93,19 +94,31 @@ export default function ClientDashboard() {
     </div>
   );
 
-  const ProjectRow = ({ p }: { p: any }) => (
-    <div
-      onClick={() => router.push(`/projects/${p.id}`)}
-      style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, marginBottom: 8, cursor: "pointer" }}
-    >
-      <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 3 }}>{p.title}</div>
-        <div style={{ fontSize: 12, color: sub }}>{p.category || "Geral"}</div>
+  const orderStatusMap: any = {
+    pending: { label: "Pendente", bg: ambB, col: ambT },
+    in_progress: { label: "Em progresso", bg: accB, col: accT },
+    revision_requested: { label: "Revisao pedida", bg: ambB, col: ambT },
+    delivered: { label: "Entregue", bg: accB, col: accT },
+    completed: { label: "Concluida", bg: grnB, col: grnT },
+    cancelled: { label: "Cancelada", bg: rdB, col: rdT },
+  };
+
+  const OrderRow = ({ o }: { o: any }) => {
+    const st = orderStatusMap[o.status] || { label: o.status, bg: surf2, col: sub };
+    return (
+      <div
+        onClick={() => router.push(`/orders/${o.id}`)}
+        style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14, marginBottom: 8, cursor: "pointer" }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.gig_title || `Encomenda #${o.id}`}</div>
+          <div style={{ fontSize: 12, color: sub }}>{o.freelancer_name || "Freelancer"}</div>
+        </div>
+        <span style={{ background: st.bg, color: st.col, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600, whiteSpace: "nowrap" }}>{st.label}</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: txt, whiteSpace: "nowrap" }}>{o.total_amount ? `${Number(o.total_amount).toLocaleString()} MT` : "—"}</span>
       </div>
-      <span style={{ background: grnB, color: grnT, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>Aberto</span>
-      <span style={{ fontSize: 14, fontWeight: 700, color: txt }}>{p.budget ? `${Number(p.budget).toLocaleString()} MT` : "A negociar"}</span>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: bg, fontFamily: "Inter, sans-serif" }}>
@@ -143,7 +156,7 @@ export default function ClientDashboard() {
         <nav style={{ flex: 1, padding: "12px 8px", overflowY: "auto" }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: sub, textTransform: "uppercase", letterSpacing: "0.8px", padding: "6px 8px 4px" }}>Principal</div>
           <SideItem id="overview"    label="Visao Geral" />
-          <SideItem id="projects"    label="Meus Projectos" />
+          <SideItem id="orders"      label="As minhas Encomendas" />
           <SideItem id="freelancers" label="Freelancers" />
           <SideItem id="messages"    label="Mensagens" />
 
@@ -184,15 +197,15 @@ export default function ClientDashboard() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <span style={{ fontSize: 15, fontWeight: 600, color: txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Cliente"} 👋` : tab === "projects" ? "Meus Projectos" : tab === "freelancers" ? "Freelancers" : "Dashboard"}
+              {tab === "overview" ? `Ola, ${user?.name?.split(" ")[0] || "Cliente"} 👋` : tab === "orders" ? "As minhas Encomendas" : tab === "freelancers" ? "Freelancers" : "Dashboard"}
             </span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500 }}>
               Mensagens
             </button>
-            <button onClick={() => router.push("/projects/new")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: grn, fontSize: 13, cursor: "pointer", color: "#fff", fontWeight: 600 }}>
-              + Novo projecto
+            <button onClick={() => router.push("/search/gigs")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: grn, fontSize: 13, cursor: "pointer", color: "#fff", fontWeight: 600 }}>
+              Explorar Servicos
             </button>
           </div>
         </div>
@@ -205,10 +218,10 @@ export default function ClientDashboard() {
               {/* Stats */}
               <div className="dash-stats-grid">
                 {[
-                  { label: "Projectos publicados", value: projects.length, sub: `${activeProjects.length} activos`, bg: accB, col: accT },
-                  { label: "Propostas recebidas",  value: 0, sub: "Para rever", bg: grnB, col: grnT },
-                  { label: "Projectos concluidos", value: 0, sub: "100% satisfacao", bg: grnB, col: grnT },
-                  { label: "Total investido (MT)",  value: 0, sub: "MT pagos", bg: ambB, col: ambT },
+                  { label: "Encomendas feitas",     value: orders.length, sub: `${ongoingOrders.length} em andamento`, bg: accB, col: accT },
+                  { label: "Em andamento",          value: ongoingOrders.length, sub: "a decorrer", bg: ambB, col: ambT },
+                  { label: "Concluidas",            value: completedOrders.length, sub: "servicos entregues", bg: grnB, col: grnT },
+                  { label: "Total investido (MT)",  value: totalInvested.toLocaleString(), sub: "em servicos", bg: ambB, col: ambT },
                 ].map((s, i) => (
                   <div key={i} style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 18 }}>
                     <div style={{ fontSize: 12, color: sub, marginBottom: 8, fontWeight: 500 }}>{s.label}</div>
@@ -222,10 +235,10 @@ export default function ClientDashboard() {
               <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 12 }}>Acesso rapido</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 24 }}>
                 {[
+                  { label: "Explorar Servicos", action: () => router.push("/search/gigs"), bg: accB, col: accT },
                   { label: "Freelancers", action: () => setTab("freelancers"), bg: accB, col: accT },
                   { label: "Mensagens",   action: () => router.push("/messages"), bg: grnB, col: grnT },
                   { label: "Pagamentos",  action: () => router.push("/payments"), bg: ambB, col: ambT },
-                  { label: "Disputas",    action: () => router.push("/disputes"), bg: rdB,  col: rdT },
                 ].map((q, i) => (
                   <div key={i} onClick={q.action} style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 10, padding: 16, cursor: "pointer", textAlign: "center" }}>
                     <div style={{ width: 38, height: 38, borderRadius: 10, background: q.bg, margin: "0 auto 8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -236,43 +249,43 @@ export default function ClientDashboard() {
                 ))}
               </div>
 
-              {/* My projects */}
+              {/* My orders */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Os meus projectos</span>
-                <button onClick={() => setTab("projects")} style={{ background: "none", border: "none", color: accT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ver todos →</button>
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>As minhas encomendas</span>
+                <button onClick={() => setTab("orders")} style={{ background: "none", border: "none", color: accT, fontSize: 13, fontWeight: 500, cursor: "pointer" }}>Ver todas →</button>
               </div>
               {loading ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
-              ) : projects.length === 0 ? (
+              ) : orders.length === 0 ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 40, textAlign: "center", color: sub }}>
-                  <p style={{ marginBottom: 16 }}>Ainda nao publicaste nenhum projecto.</p>
-                  <button onClick={() => router.push("/projects/new")} style={{ background: grn, color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
-                    Publicar primeiro projecto
+                  <p style={{ marginBottom: 16 }}>Ainda nao fizeste nenhuma encomenda.</p>
+                  <button onClick={() => router.push("/search/gigs")} style={{ background: grn, color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+                    Explorar servicos
                   </button>
                 </div>
-              ) : projects.slice(0, 4).map((p, i) => <ProjectRow key={i} p={p} />)}
+              ) : orders.slice(0, 4).map((o, i) => <OrderRow key={i} o={o} />)}
             </>
           )}
 
-          {/* PROJECTS */}
-          {tab === "projects" && (
+          {/* ORDERS */}
+          {tab === "orders" && (
             <>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Todos os meus projectos ({projects.length})</span>
-                <button onClick={() => router.push("/projects/new")} style={{ background: grn, color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
-                  + Novo projecto
+                <span style={{ fontSize: 14, fontWeight: 600, color: txt }}>Todas as minhas encomendas ({orders.length})</span>
+                <button onClick={() => router.push("/search/gigs")} style={{ background: grn, color: "#fff", padding: "8px 16px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
+                  Explorar Servicos
                 </button>
               </div>
               {loading ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 32, textAlign: "center", color: sub }}>A carregar...</div>
-              ) : projects.length === 0 ? (
+              ) : orders.length === 0 ? (
                 <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 40, textAlign: "center", color: sub }}>
-                  <p style={{ marginBottom: 16 }}>Nenhum projecto publicado ainda.</p>
-                  <button onClick={() => router.push("/projects/new")} style={{ background: grn, color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
-                    Publicar agora
+                  <p style={{ marginBottom: 16 }}>Ainda sem encomendas.</p>
+                  <button onClick={() => router.push("/search/gigs")} style={{ background: grn, color: "#fff", padding: "10px 20px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+                    Explorar agora
                   </button>
                 </div>
-              ) : projects.map((p, i) => <ProjectRow key={i} p={p} />)}
+              ) : orders.map((o, i) => <OrderRow key={i} o={o} />)}
             </>
           )}
 
