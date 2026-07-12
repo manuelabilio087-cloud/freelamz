@@ -22,7 +22,7 @@ const createContract = async (req, res) => {
     }
     // FIX: Verifica que o freelancer existe e tem role correcto
     const freelancerCheck = await client.query(
-      "SELECT id FROM users WHERE id = $1 AND role = 'freelancer'",
+      "SELECT id FROM users WHERE id = $1 AND (role = 'freelancer' OR EXISTS (SELECT 1 FROM gigs g WHERE g.freelancer_id = users.id))",
       [freelancer_id]
     );
     if (freelancerCheck.rows.length === 0) {

@@ -67,14 +67,14 @@ const getFreelancers = async (req, res) => {
     const freelancers = await pool.query(
       `SELECT id, name, bio, skills, location, avatar, verified, created_at
        FROM users u
-       WHERE role = 'freelancer' ${whereClause}
+       WHERE (role = 'freelancer' OR EXISTS (SELECT 1 FROM gigs g WHERE g.freelancer_id = u.id)) ${whereClause}
        ORDER BY verified DESC, created_at DESC
        LIMIT $1 OFFSET $2`,
       params
     );
 
     const countResult = await pool.query(
-      `SELECT COUNT(*) FROM users u WHERE role = 'freelancer' ${whereClause}`,
+      `SELECT COUNT(*) FROM users u WHERE (role = 'freelancer' OR EXISTS (SELECT 1 FROM gigs g WHERE g.freelancer_id = u.id)) ${whereClause}`,
       params.slice(2)
     );
 
@@ -96,7 +96,7 @@ const getFreelancerById = async (req, res) => {
     const { id } = req.params;
     const result = await pool.query(
       `SELECT id, name, bio, skills, location, avatar, verified, created_at
-       FROM users WHERE id = $1 AND role = 'freelancer'`,
+       FROM users WHERE id = $1 AND (role = 'freelancer' OR EXISTS (SELECT 1 FROM gigs g WHERE g.freelancer_id = users.id))`,
       [id]
     );
     if (result.rows.length === 0) {
