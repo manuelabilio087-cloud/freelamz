@@ -41,6 +41,8 @@ const register = async (req, res) => {
   if (password.length < 8) {
     return res.status(400).json({ message: 'A senha deve ter pelo menos 8 caracteres.' });
   }
+  const allowedRoles = ['freelancer', 'client'];
+  const safeRole = allowedRoles.includes(role) ? role : 'freelancer';
 
   try {
     const userExists = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase().trim()]);
@@ -50,7 +52,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12); // FIX: 12 rounds em vez de 10
     const newUser = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name.trim(), email.toLowerCase().trim(), hashedPassword, role || 'freelancer']
+      [name.trim(), email.toLowerCase().trim(), hashedPassword, safeRole]
     );
     const token = jwt.sign(
       { id: newUser.rows[0].id, role: newUser.rows[0].role },

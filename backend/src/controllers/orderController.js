@@ -44,8 +44,8 @@ const createOrder = async (req, res) => {
     deliveryDate.setDate(deliveryDate.getDate() + pkg.delivery_days);
 
     const orderResult = await client.query(
-      `INSERT INTO orders (gig_id, package_id, client_id, freelancer_id, total_amount, requirements, delivery_date, status, revisions_allowed)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8) RETURNING *`,
+      `INSERT INTO orders (gig_id, package_id, client_id, freelancer_id, total_amount, requirements, delivery_date, status, payment_status, revisions_allowed)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending_payment', 'unpaid', $8) RETURNING *`,
       [gig_id, package_id, client_id, gig.freelancer_id, total, requirements || '', deliveryDate, pkg.revisions || REVISION_LIMIT_DEFAULT]
     );
     const order = orderResult.rows[0];
@@ -63,8 +63,8 @@ const createOrder = async (req, res) => {
       if (io) {
         io.emit(`notification:${gig.freelancer_id}`, {
           type: 'order',
-          title: 'Nova encomenda recebida! 🛒',
-          body: `Recebeste uma encomenda de "${gig.title}" no valor de ${total.toLocaleString()} MT.`,
+          title: 'Encomenda pendente de pagamento',
+          body: `Um cliente reservou "${gig.title}" (${total.toLocaleString()} MT). Vais ser notificado assim que o pagamento for confirmado.`,
           url: '/orders',
         });
       }
@@ -202,9 +202,13 @@ const deliverOrder = async (req, res) => {
       await client.query('ROLLBACK');
       return res.status(404).json({ message: 'Encomenda não encontrada ou não te pertence.' });
     }
-    if (!['pending', 'in_progress', 'revision_requested'].includes(order.rows[0].status)) {
+    if (!['in_progress', 'revision_requested'].includes(order.rows[0].status)) {
       await client.query('ROLLBACK');
       return res.status(400).json({ message: 'Esta encomenda não pode ser entregue neste estado.' });
+    }
+    if (order.rows[0].payment_status !== 'paid') {
+      await client.query('ROLLBACK');
+      return res.status(402).json({ message: 'Esta encomenda ainda não foi paga. Aguarda a confirmação do pagamento antes de entregar.' });
     }
 
     await client.query(

@@ -81,8 +81,17 @@ const STEPS = [
   "A tua bio",
 ];
 
+const CLIENT_INTENT = [
+  { value: "onetime", label: "Um projecto pontual", desc: "Preciso de algo feito uma vez", icon: "🎯" },
+  { value: "recurring", label: "Preciso de ajuda recorrente", desc: "Vou contratar com regularidade", icon: "🔁" },
+  { value: "team", label: "Montar uma equipa", desc: "Quero vários freelancers para o meu negócio", icon: "👥" },
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
+  const [userRole, setUserRole] = useState<string>("freelancer");
+  const [clientStep, setClientStep] = useState(1);
+  const [clientForm, setClientForm] = useState({ avatar: "", intent: "", bio: "" });
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -109,8 +118,43 @@ export default function OnboardingPage() {
     link.href = "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css";
     document.head.appendChild(link);
     const u = localStorage.getItem("user");
-    if (!u) router.push("/login");
+    if (!u) { router.push("/login"); return; }
+    const parsed = JSON.parse(u);
+    setUserRole(parsed.role || "freelancer");
   }, []);
+
+  const handleClientAvatar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setAvatarPreview(result);
+      setClientForm(f => ({ ...f, avatar: result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleClientFinish = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      await fetch(`${API_URL}/users/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          avatar: clientForm.avatar,
+          bio: clientForm.bio,
+          location: "Mocambique",
+          objective: clientForm.intent,
+        }),
+      });
+      localStorage.setItem("onboarding_done", "true");
+      router.push("/search/gigs");
+    } catch {
+      setLoading(false);
+    }
+  };
 
   const progress = ((step - 1) / 12) * 100;
 
@@ -420,6 +464,83 @@ export default function OnboardingPage() {
     "Mostra o teu trabalho anterior (opcional)",
     "Esta frase aparece no teu cartao de freelancer",
   ];
+
+  if (userRole === "client") {
+    const clientCanNext = () => {
+      if (clientStep === 1) return true;
+      if (clientStep === 2) return !!clientForm.intent;
+      if (clientStep === 3) return clientForm.bio.length >= 5;
+      return true;
+    };
+    return (
+      <div style={{ minHeight: "100vh", background: "#f4f5f7", fontFamily: "Inter,-apple-system,sans-serif" }}>
+        <div style={{ background: "#fff", borderBottom: "1px solid #e8eaed", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{ fontSize: 18, fontWeight: 800, color: "#111827" }}>Freel<span style={{ color: "#6366f1" }}>amz</span></span>
+          <span style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500 }}>Passo {clientStep} de 3</span>
+        </div>
+        <div style={{ maxWidth: 460, margin: "48px auto", padding: "0 20px" }}>
+          <div style={{ background: "#fff", borderRadius: 16, padding: 32, border: "1px solid #e8eaed" }}>
+            {clientStep === 1 && (
+              <div style={{ textAlign: "center" }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>A tua foto de perfil</h2>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 20 }}>Ajuda os freelancers a confiar em ti</p>
+                <div style={{ width: 110, height: 110, borderRadius: "50%", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", border: "4px solid #e8eaed", cursor: "pointer" }}
+                  onClick={() => document.getElementById("client-avatar-input")?.click()}>
+                  {avatarPreview
+                    ? <img src={avatarPreview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <span style={{ fontSize: 42 }}>📷</span>}
+                </div>
+                <input id="client-avatar-input" type="file" accept="image/*" style={{ display: "none" }} onChange={handleClientAvatar} />
+              </div>
+            )}
+            {clientStep === 2 && (
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>O que procuras?</h2>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 20 }}>Isto ajuda-nos a mostrar-te os freelancers certos</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {CLIENT_INTENT.map(o => (
+                    <div key={o.value} onClick={() => setClientForm(f => ({ ...f, intent: o.value }))}
+                      style={{ padding: "16px 18px", borderRadius: 12, border: `2px solid ${clientForm.intent === o.value ? "#6366f1" : "#e8eaed"}`, background: clientForm.intent === o.value ? "#eef2ff" : "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 }}>
+                      <span style={{ fontSize: 26 }}>{o.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: clientForm.intent === o.value ? "#4f46e5" : "#111827" }}>{o.label}</div>
+                        <div style={{ fontSize: 12, color: "#6b7280" }}>{o.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {clientStep === 3 && (
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Conta-nos sobre o teu negócio</h2>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Vai aparecer no teu perfil de cliente</p>
+                <textarea
+                  value={clientForm.bio}
+                  onChange={(e) => setClientForm(f => ({ ...f, bio: e.target.value }))}
+                  placeholder="Ex: Tenho um restaurante em Maputo e preciso de ajuda com marketing digital..."
+                  style={{ width: "100%", padding: 12, border: "1px solid #e4e5e7", borderRadius: 8, minHeight: 100, fontSize: 14, resize: "vertical", fontFamily: "inherit" }}
+                />
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
+              {clientStep > 1 && (
+                <button onClick={() => setClientStep(s => s - 1)} style={{ padding: "12px 20px", borderRadius: 8, border: "1px solid #e4e5e7", background: "#fff", fontWeight: 600, cursor: "pointer" }}>Voltar</button>
+              )}
+              <button
+                onClick={() => clientStep < 3 ? setClientStep(s => s + 1) : handleClientFinish()}
+                disabled={!clientCanNext() || loading}
+                style={{ flex: 1, padding: "12px 20px", borderRadius: 8, border: "none", background: "#6366f1", color: "#fff", fontWeight: 700, cursor: "pointer", opacity: (!clientCanNext() || loading) ? 0.5 : 1 }}
+              >
+                {loading ? "A concluir..." : clientStep < 3 ? "Continuar" : "Concluir e explorar serviços"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f5f7", fontFamily: "Inter,-apple-system,sans-serif" }}>

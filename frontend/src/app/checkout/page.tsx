@@ -17,6 +17,10 @@ export default function Checkout() {
   const [requirements, setRequirements] = useState("");
   const [extras, setExtras] = useState<{ name: string; price: number }[]>([]);
   const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"review" | "payment">("review");
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [mpesaNumber, setMpesaNumber] = useState("");
+  const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
     const data = localStorage.getItem("checkout_gig");
@@ -68,12 +72,47 @@ export default function Checkout() {
       const data = await res.json();
       if (res.ok) {
         localStorage.removeItem("checkout_gig");
-        router.push("/orders");
+        setCreatedOrderId(data.order.id);
+        setStep("payment");
       } else {
         alert(data.message || "Erro ao criar pedido");
       }
     } catch (err) {
       alert("Erro de conexao");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePay = async () => {
+    const token = localStorage.getItem("token");
+    if (!token || !createdOrderId) return;
+
+    setPaymentError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/payments/initiate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          order_id: createdOrderId,
+          amount: calculateTotal(),
+          mpesa_number: mpesaNumber,
+          description: `Pagamento da encomenda #${createdOrderId} - ${checkoutData?.gig.title}`,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        router.push("/orders");
+      } else {
+        setPaymentError(data.message || "Erro ao processar pagamento");
+      }
+    } catch (err) {
+      setPaymentError("Erro de conexao");
     } finally {
       setLoading(false);
     }
@@ -119,6 +158,35 @@ export default function Checkout() {
 
         <h1 style={{ fontSize: "28px", fontWeight: "700", color: "#404145", marginBottom: "24px" }}>Checkout</h1>
 
+        {step === "payment" && (
+          <div className="card" style={{ marginBottom: "20px" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#404145", marginBottom: "4px" }}>Pagar com M-Pesa</h2>
+            <p style={{ fontSize: "13px", color: "#74767e", marginBottom: "16px" }}>
+              A encomenda foi criada e está reservada. O freelancer só vê o pedido depois de confirmares o pagamento.
+            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f1f1f1", marginBottom: "16px" }}>
+              <span style={{ fontSize: "18px", fontWeight: "700", color: "#404145" }}>Total a pagar</span>
+              <span style={{ fontSize: "18px", fontWeight: "700", color: "#1dbf73" }}>{calculateTotal()} MT</span>
+            </div>
+            <label style={{ fontSize: "13px", fontWeight: "600", color: "#404145", display: "block", marginBottom: "6px" }}>Número M-Pesa</label>
+            <input
+              type="tel"
+              value={mpesaNumber}
+              onChange={(e) => setMpesaNumber(e.target.value)}
+              placeholder="84xxxxxxx / 85xxxxxxx / 86xxxxxxx / 87xxxxxxx"
+              style={{ width: "100%", padding: "12px", border: "1px solid #e4e5e7", borderRadius: "8px", fontSize: "14px", marginBottom: "12px" }}
+            />
+            {paymentError && (
+              <p style={{ color: "#e6392f", fontSize: "13px", marginBottom: "12px" }}>{paymentError}</p>
+            )}
+            <button onClick={handlePay} className="btn-green" disabled={loading || !mpesaNumber} style={{ width: "100%" }}>
+              {loading ? "A confirmar pagamento..." : `Pagar ${calculateTotal()} MT`}
+            </button>
+          </div>
+        )}
+
+        {step === "review" && (
+        <>
         <div className="card" style={{ marginBottom: "20px" }}>
           <h2 style={{ fontSize: "18px", fontWeight: "700", color: "#404145", marginBottom: "12px" }}>Resumo do pedido</h2>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f1f1f1" }}>
@@ -166,10 +234,12 @@ export default function Checkout() {
 
         <div className="checkout-actions">
           <button onClick={handleConfirm} className="btn-green" disabled={loading} style={{ flex: 1 }}>
-            {loading ? "A processar..." : `Confirmar e pagar (${calculateTotal()} MT)`}
+            {loading ? "A processar..." : `Continuar para pagamento (${calculateTotal()} MT)`}
           </button>
           <Link href="/search/gigs" className="btn-outline" style={{ textDecoration: "none" }}>Cancelar</Link>
         </div>
+        </>
+        )}
       </div>
     </div>
   );

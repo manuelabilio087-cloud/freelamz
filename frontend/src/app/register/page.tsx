@@ -12,18 +12,20 @@ function RegisterForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"freelancer" | "client" | "">("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    if (!role) { setError("Escolhe se és freelancer ou cliente."); return; }
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role: "freelancer", referral_code: referralCode || undefined }),
+        body: JSON.stringify({ name, email, password, role, referral_code: referralCode || undefined }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || "Erro ao criar conta"); return; }
@@ -118,6 +120,27 @@ function RegisterForm() {
 
               <form onSubmit={handleSubmit}>
                 <div className="form-group">
+                  <label>Quero...</label>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <div
+                      onClick={() => setRole("freelancer")}
+                      style={{ flex: 1, padding: "14px 12px", borderRadius: 8, border: `2px solid ${role === "freelancer" ? "#1dbf73" : "#e4e5e7"}`, background: role === "freelancer" ? "#ecfdf5" : "#fff", cursor: "pointer", textAlign: "center", transition: "all .15s" }}
+                    >
+                      <div style={{ fontSize: 22, marginBottom: 4 }}>🛠️</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: role === "freelancer" ? "#0fa85c" : "#404145" }}>Oferecer serviços</div>
+                      <div style={{ fontSize: 11, color: "#74767e" }}>Sou freelancer</div>
+                    </div>
+                    <div
+                      onClick={() => setRole("client")}
+                      style={{ flex: 1, padding: "14px 12px", borderRadius: 8, border: `2px solid ${role === "client" ? "#1dbf73" : "#e4e5e7"}`, background: role === "client" ? "#ecfdf5" : "#fff", cursor: "pointer", textAlign: "center", transition: "all .15s" }}
+                    >
+                      <div style={{ fontSize: 22, marginBottom: 4 }}>🔍</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: role === "client" ? "#0fa85c" : "#404145" }}>Contratar</div>
+                      <div style={{ fontSize: 11, color: "#74767e" }}>Sou cliente</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
                   <label>Nome completo</label>
                   <input type="text" placeholder="O teu nome" value={name} onChange={e => setName(e.target.value)} required />
                 </div>
@@ -135,7 +158,7 @@ function RegisterForm() {
                   </p>
                 )}
                 {error && <p className="error">{error}</p>}
-                <button type="submit" className="btn-primary" disabled={loading}>
+                <button type="submit" className="btn-primary" disabled={loading || !role}>
                   {loading ? "A criar conta..." : "Criar conta"}
                 </button>
               </form>
