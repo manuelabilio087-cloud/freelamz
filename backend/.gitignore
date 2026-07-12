@@ -1,3 +1,4 @@
 node_modules/
 .env
-*.log
+*.logbackend/database/*.db
+backend/database/*.db
