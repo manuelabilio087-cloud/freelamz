@@ -4,10 +4,8 @@ const createGig = async (req, res) => {
   const { title, category, category_id, description, image, tags, packages } = req.body;
   const freelancer_id = req.user.id;
 
-  // FIX: Apenas freelancers podem publicar servicos (gigs)
-  if (req.user.role !== 'freelancer') {
-    return res.status(403).json({ message: 'Apenas freelancers podem publicar servicos.' });
-  }
+  // Qualquer utilizador autenticado pode publicar um gig (modelo flexível:
+  // um "cliente" também pode oferecer serviços, tal como um "freelancer" também pode contratar)
 
   // FIX: Validação de input
   if (!title || !category || !description) {

@@ -109,12 +109,16 @@ export default function Navbar() {
               <Link href="/messages" style={{ color: COLORS.textDim, display: "flex" }} title="Notificacoes">
                 <BellIcon />
               </Link>
-              <Link href="/dashboard" style={{ color: COLORS.text, textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
+              <Link href={user.role === "client" ? "/client-dashboard" : "/dashboard"} style={{ color: COLORS.text, textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
                 Painel
               </Link>
-              {user.role === "freelancer" && (
+              {user.role === "freelancer" ? (
                 <Link href="/create-gig" style={{ background: COLORS.green, color: "#fff", padding: "8px 16px", borderRadius: "8px", fontWeight: 600, fontSize: "13.5px", textDecoration: "none" }}>
                   + Publicar Servico
+                </Link>
+              ) : (
+                <Link href="/projects/new" style={{ background: COLORS.green, color: "#fff", padding: "8px 16px", borderRadius: "8px", fontWeight: 600, fontSize: "13.5px", textDecoration: "none" }}>
+                  + Publicar Projeto
                 </Link>
               )}
               <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -135,7 +139,7 @@ export default function Navbar() {
                       <div style={{ color: COLORS.textDim, fontSize: "12px", marginTop: "2px" }}>{user.role === "freelancer" ? "Freelancer" : "Cliente"}</div>
                     </div>
                     {[
-                      { href: "/dashboard", label: "Painel" },
+                      { href: user.role === "client" ? "/client-dashboard" : "/dashboard", label: "Painel" },
                       { href: "/profile", label: "Meu perfil" },
                       { href: "/orders", label: "Encomendas" },
                       { href: "/favorites", label: "Favoritos" },
@@ -147,6 +151,13 @@ export default function Navbar() {
                         {l.label}
                       </Link>
                     ))}
+                    <Link
+                      href={user.role === "client" ? "/create-gig" : "/projects/new"}
+                      onClick={() => setDropdownOpen(false)}
+                      style={{ display: "block", padding: "11px 16px", color: COLORS.indigo, textDecoration: "none", fontSize: "13.5px", fontWeight: 600, borderTop: `1px solid ${COLORS.border}` }}
+                    >
+                      {user.role === "client" ? "Quero oferecer serviços →" : "Quero contratar alguém →"}
+                    </Link>
                     <button
                       onClick={handleLogout}
                       style={{ display: "block", width: "100%", textAlign: "left", padding: "11px 16px", color: "#f87171", background: "transparent", border: "none", borderTop: `1px solid ${COLORS.border}`, cursor: "pointer", fontSize: "13.5px" }}
