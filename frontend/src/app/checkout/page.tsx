@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
@@ -13,23 +13,45 @@ interface CheckoutData {
 
 export default function Checkout() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resumeOrderId = searchParams.get("orderId");
   const [checkoutData, setCheckoutData] = useState<CheckoutData | null>(null);
   const [requirements, setRequirements] = useState("");
   const [extras, setExtras] = useState<{ name: string; price: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"review" | "payment">("review");
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [resumeAmount, setResumeAmount] = useState<number | null>(null);
   const [mpesaNumber, setMpesaNumber] = useState("");
   const [paymentError, setPaymentError] = useState("");
 
   useEffect(() => {
+    if (resumeOrderId) {
+      const token = localStorage.getItem("token");
+      if (!token) { router.push("/login"); return; }
+      fetch(`${API_URL}/orders/${resumeOrderId}`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(r => r.json())
+        .then(data => {
+          const order = data.order || data;
+          if (order.payment_status === "paid") {
+            router.push("/orders");
+            return;
+          }
+          setCreatedOrderId(order.id);
+          setResumeAmount(Number(order.total_amount));
+          setCheckoutData({ gig: { id: order.gig_id, title: order.gig_title || "Encomenda" }, selectedPackage: { id: order.package_id, title: "", price: order.total_amount } });
+          setStep("payment");
+        })
+        .catch(() => router.push("/orders"));
+      return;
+    }
     const data = localStorage.getItem("checkout_gig");
     if (data) {
       setCheckoutData(JSON.parse(data));
     } else {
       router.push("/search/gigs");
     }
-  }, [router]);
+  }, [router, resumeOrderId]);
 
   const toggleExtra = (extra: { name: string; price: number }) => {
     setExtras((prev) => {
@@ -40,6 +62,7 @@ export default function Checkout() {
   };
 
   const calculateTotal = () => {
+    if (resumeAmount !== null) return resumeAmount;
     if (!checkoutData) return 0;
     let total = parseFloat(checkoutData.selectedPackage.price);
     extras.forEach((e) => total += e.price);

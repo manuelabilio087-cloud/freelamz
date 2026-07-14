@@ -34,11 +34,6 @@ export default function CreateGig() {
   useEffect(() => {
     const u = localStorage.getItem("user");
     if (!u) { router.push("/login"); return; }
-    const user = JSON.parse(u);
-    if (user.role !== "freelancer") {
-      router.push("/search/gigs");
-      return;
-    }
     setCheckingAuth(false);
 
     fetch(`${API_URL}/categories`)

@@ -65,7 +65,7 @@ export default function ClientDashboard() {
   const rdB   = dark ? "#2a0f0f" : "#fef2f2";
   const grn   = "#10b981";
 
-  const ongoingOrders   = orders.filter((o: any) => ["pending", "in_progress", "revision_requested", "delivered"].includes(o.status));
+  const ongoingOrders   = orders.filter((o: any) => ["pending_payment", "pending", "in_progress", "revision_requested", "delivered"].includes(o.status));
   const completedOrders = orders.filter((o: any) => o.status === "completed");
   const totalInvested   = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total_amount) || 0), 0);
 

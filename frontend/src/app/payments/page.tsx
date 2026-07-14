@@ -158,12 +158,10 @@ export default function Payments() {
       <div className="container">
         <div className="page-header">
           <h1 className="page-title">💰 Pagamentos M-Pesa</h1>
-          {user?.role === "client" && (
-            <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Novo Pagamento
             </button>
-          )}
         </div>
 
         {/* Alertas */}
@@ -206,7 +204,7 @@ export default function Payments() {
         </div>
 
         {/* Formulário de Pagamento */}
-        {showForm && user?.role === "client" && (
+        {showForm && (
           <div className="form-card">
             <div className="form-title">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>

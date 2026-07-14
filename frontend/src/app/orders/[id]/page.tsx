@@ -37,6 +37,7 @@ interface OrderDetail {
 }
 
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  pending_payment: { label: "Aguarda pagamento", color: "#9a3412", bg: "#ffedd5" },
   pending: { label: "Pendente", color: "#92400e", bg: "#fef3c7" },
   in_progress: { label: "Em progresso", color: "#3730a3", bg: "#e0e7ff" },
   delivered: { label: "Entregue - aguarda revisao", color: "#0369a1", bg: "#e0f2fe" },
@@ -221,11 +222,11 @@ export default function OrderDetailPage() {
   const isClient = userId === order.client_id;
   const isFreelancer = userId === order.freelancer_id;
   const meta = STATUS_META[order.status] || { label: order.status, color: "#404145", bg: "#f3f4f6" };
-  const canDeliver = isFreelancer && ["pending", "in_progress", "revision_requested"].includes(order.status);
+  const canDeliver = isFreelancer && ["in_progress", "revision_requested"].includes(order.status);
   const canAccept = isClient && order.status === "delivered";
   const canRequestRevision = isClient && order.status === "delivered" && order.revisions_used < order.revisions_allowed;
-  const canCancel = (isClient || isFreelancer) && ["pending", "in_progress"].includes(order.status);
-  const canStartProgress = isFreelancer && order.status === "pending";
+  const canCancel = (isClient || isFreelancer) && ["pending_payment", "in_progress"].includes(order.status);
+  const awaitingPayment = isClient && order.status === "pending_payment";
 
   return (
     <div style={{ minHeight: "100vh", background: "#f7f7f7", fontFamily: "Inter, sans-serif" }}>
@@ -380,10 +381,10 @@ export default function OrderDetailPage() {
               Pedir revisao
             </button>
           )}
-          {canStartProgress && (
-            <button className="btn-outline" onClick={() => handleStatusChange("in_progress")} disabled={submitting}>
-              Marcar como em progresso
-            </button>
+          {awaitingPayment && (
+            <Link href={`/checkout?orderId=${order.id}`} className="btn-green" style={{ textDecoration: "none" }}>
+              Pagar agora
+            </Link>
           )}
           {canCancel && (
             <button className="btn-danger" onClick={() => handleStatusChange("cancelled")} disabled={submitting}>

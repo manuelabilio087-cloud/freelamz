@@ -51,6 +51,7 @@ export default function Orders() {
     switch (status) {
       case "completed": return "#1dbf73";
       case "in_progress": return "#f5a623";
+      case "pending_payment": return "#e6392f";
       case "pending": return "#74767e";
       default: return "#74767e";
     }
@@ -60,6 +61,7 @@ export default function Orders() {
     switch (status) {
       case "completed": return "Concluido";
       case "in_progress": return "Em progresso";
+      case "pending_payment": return "Aguarda pagamento";
       case "pending": return "Pendente";
       default: return status;
     }

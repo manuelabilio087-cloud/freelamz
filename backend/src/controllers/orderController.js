@@ -175,6 +175,9 @@ const updateOrderStatus = async (req, res) => {
     if (orderResult.rows.length === 0) {
       return res.status(404).json({ message: 'Encomenda não encontrada.' });
     }
+    if (status === 'in_progress' && orderResult.rows[0].payment_status !== 'paid') {
+      return res.status(402).json({ message: 'Esta encomenda ainda não foi paga.' });
+    }
 
     await pool.query('UPDATE orders SET status = $1, updated_at = NOW() WHERE id = $2', [status, id]);
     res.json({ message: 'Estado actualizado com sucesso!' });
@@ -336,10 +339,9 @@ const acceptDelivery = async (req, res) => {
       `UPDATE orders SET status = 'completed', completed_at = NOW(), updated_at = NOW() WHERE id = $1`,
       [id]
     );
-    await client.query(
-      `INSERT INTO payments (payer_id, receiver_id, amount, status, description) VALUES ($1, $2, $3, 'completed', $4)`,
-      [user_id, o.freelancer_id, o.total_amount, `Encomenda: ${o.gig_title}`]
-    );
+    // NOTA: o pagamento já foi registado em /payments/initiate no checkout (ligado a este order_id).
+    // Aceitar a entrega só fecha a encomenda — não deve criar um segundo registo de pagamento,
+    // senão o dinheiro fica contado a dobrar no resumo financeiro.
 
     await client.query('COMMIT');
 
