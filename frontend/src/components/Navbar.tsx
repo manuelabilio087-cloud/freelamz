@@ -117,8 +117,8 @@ export default function Navbar() {
                   + Publicar Servico
                 </Link>
               ) : (
-                <Link href="/projects/new" style={{ background: COLORS.green, color: "#fff", padding: "8px 16px", borderRadius: "8px", fontWeight: 600, fontSize: "13.5px", textDecoration: "none" }}>
-                  + Publicar Projeto
+                <Link href="/search/gigs" style={{ background: COLORS.green, color: "#fff", padding: "8px 16px", borderRadius: "8px", fontWeight: 600, fontSize: "13.5px", textDecoration: "none" }}>
+                  Explorar Servicos
                 </Link>
               )}
               <div ref={dropdownRef} style={{ position: "relative" }}>
@@ -152,7 +152,7 @@ export default function Navbar() {
                       </Link>
                     ))}
                     <Link
-                      href={user.role === "client" ? "/create-gig" : "/projects/new"}
+                      href={user.role === "client" ? "/create-gig" : "/search/gigs"}
                       onClick={() => setDropdownOpen(false)}
                       style={{ display: "block", padding: "11px 16px", color: COLORS.indigo, textDecoration: "none", fontSize: "13.5px", fontWeight: 600, borderTop: `1px solid ${COLORS.border}` }}
                     >
@@ -210,7 +210,7 @@ export default function Navbar() {
                     </Link>
                   )}
                   {[
-                    { href: "/dashboard", label: "Painel" },
+                    { href: user.role === "client" ? "/client-dashboard" : "/dashboard", label: "Painel" },
                     { href: "/profile", label: "Meu perfil" },
                     { href: "/orders", label: "Encomendas" },
                     { href: "/favorites", label: "Favoritos" },
