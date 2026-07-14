@@ -1,12 +1,14 @@
 ﻿"use client";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
 export default function Messages() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const startUserId = searchParams.get("userId");
   const [conversations, setConversations] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -23,6 +25,27 @@ export default function Messages() {
     setUser(JSON.parse(u));
     loadConversations();
   }, []);
+
+  useEffect(() => {
+    if (!startUserId) return;
+    // Se já existe uma conversa com esta pessoa, usa-a (tem unread_count, last_message, etc.)
+    const existing = conversations.find((c) => String(c.id) === String(startUserId));
+    if (existing) {
+      selectConversation(existing);
+      return;
+    }
+    // Caso contrário, busca os dados basicos da pessoa para começar uma conversa nova
+    const token = localStorage.getItem("token");
+    fetch(`${API_URL}/users/${startUserId}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.id) {
+          setSelected({ id: data.id, name: data.name, avatar: data.avatar });
+          setMessages([]);
+        }
+      })
+      .catch(() => {});
+  }, [startUserId, conversations]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,6 +92,7 @@ export default function Messages() {
       });
       setText("");
       loadMessages(selected.id);
+      loadConversations();
       setTimeout(() => inputRef.current?.focus(), 100);
     } catch {}
     setSending(false);

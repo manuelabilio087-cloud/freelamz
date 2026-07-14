@@ -81,6 +81,12 @@ export default function GigDetail() {
                   <p style={{ fontWeight: "600", color: "#404145" }}>{gig.freelancer_name}</p>
                   <p style={{ fontSize: "13px", color: "#74767e" }}>{gig.freelancer_bio || "Freelancer"}</p>
                 </div>
+                <Link
+                  href={`/messages?userId=${gig.freelancer_id}`}
+                  style={{ marginLeft: "auto", fontSize: "13px", fontWeight: 600, color: "#1dbf73", textDecoration: "none", border: "1px solid #1dbf73", borderRadius: "6px", padding: "7px 14px", whiteSpace: "nowrap" }}
+                >
+                  Contactar
+                </Link>
               </div>
               <div style={{ height: "300px", background: "linear-gradient(135deg, #1dbf73, #0a8c55)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "80px", marginBottom: "16px" }}>
                 💼
