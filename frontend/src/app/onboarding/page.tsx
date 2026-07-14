@@ -87,11 +87,18 @@ const CLIENT_INTENT = [
   { value: "team", label: "Montar uma equipa", desc: "Quero vários freelancers para o meu negócio", icon: "👥" },
 ];
 
+const BUDGET_RANGES = [
+  { value: "low", label: "Até 5.000 MT", desc: "Tarefas simples e rápidas", icon: "💵" },
+  { value: "mid", label: "5.000 - 20.000 MT", desc: "Projectos de média dimensão", icon: "💰" },
+  { value: "high", label: "20.000 - 50.000 MT", desc: "Projectos mais completos", icon: "💎" },
+  { value: "enterprise", label: "50.000 MT+", desc: "Projectos grandes ou continuos", icon: "🏢" },
+];
+
 export default function OnboardingPage() {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string>("freelancer");
   const [clientStep, setClientStep] = useState(1);
-  const [clientForm, setClientForm] = useState({ avatar: "", intent: "", bio: "" });
+  const [clientForm, setClientForm] = useState({ avatar: "", intent: "", categories: [] as string[], budget: "", bio: "" });
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState("");
@@ -143,10 +150,14 @@ export default function OnboardingPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          avatar: clientForm.avatar,
+          avatar: clientForm.avatar || undefined,
           bio: clientForm.bio,
           location: "Mocambique",
-          objective: clientForm.intent,
+          client_preferences: {
+            intent: clientForm.intent,
+            categories: clientForm.categories,
+            budget: clientForm.budget,
+          },
         }),
       });
       localStorage.setItem("onboarding_done", "true");
@@ -469,14 +480,22 @@ export default function OnboardingPage() {
     const clientCanNext = () => {
       if (clientStep === 1) return true;
       if (clientStep === 2) return !!clientForm.intent;
-      if (clientStep === 3) return clientForm.bio.length >= 5;
+      if (clientStep === 3) return clientForm.categories.length > 0;
+      if (clientStep === 4) return !!clientForm.budget;
+      if (clientStep === 5) return clientForm.bio.length >= 5;
       return true;
+    };
+    const toggleCategory = (value: string) => {
+      setClientForm(f => ({
+        ...f,
+        categories: f.categories.includes(value) ? f.categories.filter(c => c !== value) : [...f.categories, value],
+      }));
     };
     return (
       <div style={{ minHeight: "100vh", background: "#f4f5f7", fontFamily: "Inter,-apple-system,sans-serif" }}>
         <div style={{ background: "#fff", borderBottom: "1px solid #e8eaed", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{ fontSize: 18, fontWeight: 800, color: "#111827" }}>Freel<span style={{ color: "#6366f1" }}>amz</span></span>
-          <span style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500 }}>Passo {clientStep} de 3</span>
+          <span style={{ fontSize: 13, color: "#9ca3af", fontWeight: 500 }}>Passo {clientStep} de 5</span>
         </div>
         <div style={{ maxWidth: 460, margin: "48px auto", padding: "0 20px" }}>
           <div style={{ background: "#fff", borderRadius: 16, padding: 32, border: "1px solid #e8eaed" }}>
@@ -513,6 +532,39 @@ export default function OnboardingPage() {
             )}
             {clientStep === 3 && (
               <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Que tipo de serviço procuras?</h2>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Escolhe uma ou mais areas (podes mudar depois)</p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {AREAS.map(a => (
+                    <div key={a.value} onClick={() => toggleCategory(a.value)}
+                      style={{ padding: "14px 12px", borderRadius: 10, border: `2px solid ${clientForm.categories.includes(a.value) ? "#6366f1" : "#e8eaed"}`, background: clientForm.categories.includes(a.value) ? "#eef2ff" : "#fff", cursor: "pointer", textAlign: "center" }}>
+                      <div style={{ fontSize: 22, marginBottom: 4 }}>{a.icon}</div>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: clientForm.categories.includes(a.value) ? "#4f46e5" : "#111827" }}>{a.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {clientStep === 4 && (
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Qual e o teu orçamento habitual?</h2>
+                <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 20 }}>Ajuda-nos a mostrar-te pacotes dentro do teu alcance</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {BUDGET_RANGES.map(o => (
+                    <div key={o.value} onClick={() => setClientForm(f => ({ ...f, budget: o.value }))}
+                      style={{ padding: "16px 18px", borderRadius: 12, border: `2px solid ${clientForm.budget === o.value ? "#6366f1" : "#e8eaed"}`, background: clientForm.budget === o.value ? "#eef2ff" : "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 14 }}>
+                      <span style={{ fontSize: 26 }}>{o.icon}</span>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: clientForm.budget === o.value ? "#4f46e5" : "#111827" }}>{o.label}</div>
+                        <div style={{ fontSize: 12, color: "#6b7280" }}>{o.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {clientStep === 5 && (
+              <div>
                 <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Conta-nos sobre o teu negócio</h2>
                 <p style={{ fontSize: 13, color: "#9ca3af", marginBottom: 16 }}>Vai aparecer no teu perfil de cliente</p>
                 <textarea
@@ -529,11 +581,11 @@ export default function OnboardingPage() {
                 <button onClick={() => setClientStep(s => s - 1)} style={{ padding: "12px 20px", borderRadius: 8, border: "1px solid #e4e5e7", background: "#fff", fontWeight: 600, cursor: "pointer" }}>Voltar</button>
               )}
               <button
-                onClick={() => clientStep < 3 ? setClientStep(s => s + 1) : handleClientFinish()}
+                onClick={() => clientStep < 5 ? setClientStep(s => s + 1) : handleClientFinish()}
                 disabled={!clientCanNext() || loading}
                 style={{ flex: 1, padding: "12px 20px", borderRadius: 8, border: "none", background: "#6366f1", color: "#fff", fontWeight: 700, cursor: "pointer", opacity: (!clientCanNext() || loading) ? 0.5 : 1 }}
               >
-                {loading ? "A concluir..." : clientStep < 3 ? "Continuar" : "Concluir e explorar serviços"}
+                {loading ? "A concluir..." : clientStep < 5 ? "Continuar" : "Concluir e explorar serviços"}
               </button>
             </div>
           </div>

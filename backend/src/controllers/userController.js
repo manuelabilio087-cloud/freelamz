@@ -26,11 +26,20 @@ const getProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-  const { name, bio, skills, phone, location } = req.body;
+  const { name, bio, skills, phone, location, avatar, client_preferences } = req.body;
   try {
     const user = await pool.query(
-      'UPDATE users SET name = COALESCE($1, name), bio = COALESCE($2, bio), skills = COALESCE($3, skills), phone = COALESCE($4, phone), location = COALESCE($5, location) WHERE id = $6 RETURNING id, name, email, role, bio, skills, phone, location, avatar, verified',
-      [name, bio, skills ? JSON.stringify(skills) : null, phone, location, req.user.id]
+      `UPDATE users SET
+        name = COALESCE($1, name),
+        bio = COALESCE($2, bio),
+        skills = COALESCE($3, skills),
+        phone = COALESCE($4, phone),
+        location = COALESCE($5, location),
+        avatar = COALESCE($6, avatar),
+        client_preferences = COALESCE($7, client_preferences)
+       WHERE id = $8
+       RETURNING id, name, email, role, bio, skills, phone, location, avatar, verified, client_preferences`,
+      [name, bio, skills ? JSON.stringify(skills) : null, phone, location, avatar || null, client_preferences ? JSON.stringify(client_preferences) : null, req.user.id]
     );
     res.json(user.rows[0]);
   } catch (err) {
