@@ -9,6 +9,8 @@ export default function ClientDashboard() {
   const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [freelancers, setFreelancers] = useState<any[]>([]);
+  const [recommendedGigs, setRecommendedGigs] = useState<any[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
   const [dark, setDark] = useState(false);
@@ -37,14 +39,27 @@ export default function ClientDashboard() {
   const loadData = async () => {
     const token = localStorage.getItem("token");
     try {
-      const [oR, fR] = await Promise.all([
+      const [oR, fR, unR] = await Promise.all([
         fetch(`${API_URL}/orders?role=buying`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/users/freelancers`),
+        fetch(`${API_URL}/messages/unread/count`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const oD = await oR.json();
       const fD = await fR.json();
+      const unD = await unR.json();
       setOrders(Array.isArray(oD) ? oD : []);
       setFreelancers(Array.isArray(fD) ? fD : []);
+      setUnreadCount(unD?.count || 0);
+
+      // Recomendar gigs com base nas categorias escolhidas no onboarding
+      const u = JSON.parse(localStorage.getItem("user") || "{}");
+      const categories = u?.client_preferences?.categories;
+      if (Array.isArray(categories) && categories.length > 0) {
+        const gigRes = await fetch(`${API_URL}/gigs?category=${encodeURIComponent(categories[0])}`);
+        const gigData = await gigRes.json();
+        const gigList = Array.isArray(gigData) ? gigData : (gigData.gigs || []);
+        setRecommendedGigs(gigList.slice(0, 3));
+      }
     } catch {}
     setLoading(false);
   };
@@ -70,13 +85,13 @@ export default function ClientDashboard() {
   const totalInvested   = completedOrders.reduce((sum: number, o: any) => sum + (Number(o.total_amount) || 0), 0);
 
   const navGo = (id: string) => {
-    const routes: any = { messages: "/messages", contracts: "/contracts", payments: "/payments", disputes: "/disputes", profile: "/profile" };
+    const routes: any = { messages: "/messages", payments: "/payments", disputes: "/disputes", profile: "/profile" };
     setMobileNavOpen(false);
     if (routes[id]) { router.push(routes[id]); return; }
     setTab(id);
   };
 
-  const SideItem = ({ id, label }: { id: string; label: string }) => (
+  const SideItem = ({ id, label, badge = 0 }: { id: string; label: string; badge?: number }) => (
     <div
       onClick={() => navGo(id)}
       style={{
@@ -88,13 +103,20 @@ export default function ClientDashboard() {
         marginBottom: 2,
         background: tab === id ? grnB : "transparent",
         color: tab === id ? grnT : sub,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
       }}
     >
-      {label}
+      <span>{label}</span>
+      {badge > 0 && (
+        <span style={{ background: "#ef4444", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 20, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{badge}</span>
+      )}
     </div>
   );
 
   const orderStatusMap: any = {
+    pending_payment: { label: "Aguarda pagamento", bg: rdB, col: rdT },
     pending: { label: "Pendente", bg: ambB, col: ambT },
     in_progress: { label: "Em progresso", bg: accB, col: accT },
     revision_requested: { label: "Revisao pedida", bg: ambB, col: ambT },
@@ -158,10 +180,9 @@ export default function ClientDashboard() {
           <SideItem id="overview"    label="Visao Geral" />
           <SideItem id="orders"      label="As minhas Encomendas" />
           <SideItem id="freelancers" label="Freelancers" />
-          <SideItem id="messages"    label="Mensagens" />
+          <SideItem id="messages"    label="Mensagens" badge={unreadCount} />
 
           <div style={{ fontSize: 10, fontWeight: 600, color: sub, textTransform: "uppercase", letterSpacing: "0.8px", padding: "14px 8px 4px" }}>Gestao</div>
-          <SideItem id="contracts" label="Contratos" />
           <SideItem id="payments"  label="Pagamentos" />
           <SideItem id="disputes"  label="Disputas" />
 
@@ -201,8 +222,11 @@ export default function ClientDashboard() {
             </span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500 }}>
+            <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500, position: "relative" }}>
               Mensagens
+              {unreadCount > 0 && (
+                <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 6px", minWidth: 16 }}>{unreadCount}</span>
+              )}
             </button>
             <button onClick={() => router.push("/search/gigs")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: grn, fontSize: 13, cursor: "pointer", color: "#fff", fontWeight: 600 }}>
               Explorar Servicos
@@ -230,6 +254,22 @@ export default function ClientDashboard() {
                   </div>
                 ))}
               </div>
+
+              {/* Recommended gigs */}
+              {recommendedGigs.length > 0 && (
+                <>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 12 }}>Recomendado para ti</div>
+                  <div className="dash-freelancers-grid" style={{ marginBottom: 24 }}>
+                    {recommendedGigs.map((g: any, i: number) => (
+                      <div key={i} onClick={() => router.push(`/gig/${g.id}`)} style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 12, padding: 16, cursor: "pointer" }}>
+                        <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.title}</div>
+                        <div style={{ fontSize: 12, color: sub, marginBottom: 10 }}>{g.freelancer_name || "Freelancer"}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: grnT }}>{g.starting_price ? `${Number(g.starting_price).toLocaleString()} MT` : "—"}</div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               {/* Quick access */}
               <div style={{ fontSize: 14, fontWeight: 600, color: txt, marginBottom: 12 }}>Acesso rapido</div>
@@ -314,7 +354,7 @@ export default function ClientDashboard() {
                           ))}
                         </div>
                         <button
-                          onClick={e => { e.stopPropagation(); router.push("/messages"); }}
+                          onClick={e => { e.stopPropagation(); router.push(`/messages?userId=${f.id}`); }}
                           style={{ width: "100%", padding: 9, background: grn, color: "#fff", border: "none", borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 13 }}
                         >
                           Contactar

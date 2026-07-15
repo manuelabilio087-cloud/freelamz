@@ -231,7 +231,7 @@ const getFreelancerStats = async (req, res) => {
     // modelo de servicos/gigs (estilo Fiverr): gigs publicados e encomendas.
     const [gigsCount, ongoing, completed, earnings, rating, unread] = await Promise.all([
       pool.query('SELECT COUNT(*) as total FROM gigs WHERE freelancer_id = $1', [userId]),
-      pool.query("SELECT COUNT(*) as total FROM orders WHERE freelancer_id = $1 AND status IN ('pending','in_progress','revision_requested','delivered')", [userId]),
+      pool.query("SELECT COUNT(*) as total FROM orders WHERE freelancer_id = $1 AND status IN ('pending_payment','pending','in_progress','revision_requested','delivered')", [userId]),
       pool.query("SELECT COUNT(*) as total FROM orders WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
       pool.query("SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE freelancer_id = $1 AND status = 'completed'", [userId]),
       pool.query('SELECT COALESCE(AVG(rating), 0) as avg FROM order_reviews r JOIN orders o ON r.order_id = o.id WHERE o.freelancer_id = $1', [userId]),

@@ -487,7 +487,7 @@ export default function AdminPanel() {
                 {orders.length === 0 ? (
                   <div style={{ padding: 40, textAlign: "center", color: sub }}>Nenhuma encomenda ainda.</div>
                 ) : orders.slice(0, 50).map((o, i) => {
-                  const stMap: any = { pending: [yel, yelL, "Pendente"], in_progress: [acc, accL, "Em progresso"], delivered: ["#0ea5e9", dark ? "#0c1a2e" : "#f0f9ff", "Entregue"], completed: [grn, grnL, "Concluida"], cancelled: [red, redL, "Cancelada"], revision_requested: [yel, yelL, "Revisao"] };
+                  const stMap: any = { pending_payment: [red, redL, "Aguarda pagamento"], pending: [yel, yelL, "Pendente"], in_progress: [acc, accL, "Em progresso"], delivered: ["#0ea5e9", dark ? "#0c1a2e" : "#f0f9ff", "Entregue"], completed: [grn, grnL, "Concluida"], cancelled: [red, redL, "Cancelada"], revision_requested: [yel, yelL, "Revisao"] };
                   const st = stMap[o.status] || [sub, surf2, o.status];
                   return (
                     <div key={i} className="admin-trow" style={{ display: "grid", gridTemplateColumns: "60px 2fr 1fr 1fr 1fr 1fr", padding: "12px 20px", borderBottom: `1px solid ${bord}`, alignItems: "center", gap: 10 }}>

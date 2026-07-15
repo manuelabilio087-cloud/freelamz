@@ -146,7 +146,7 @@ export default function OnboardingPage() {
     setLoading(true);
     const token = localStorage.getItem("token");
     try {
-      await fetch(`${API_URL}/users/profile`, {
+      const res = await fetch(`${API_URL}/users/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
@@ -160,6 +160,11 @@ export default function OnboardingPage() {
           },
         }),
       });
+      const updatedUser = await res.json();
+      if (updatedUser && updatedUser.id) {
+        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        localStorage.setItem("user", JSON.stringify({ ...currentUser, ...updatedUser }));
+      }
       localStorage.setItem("onboarding_done", "true");
       router.push("/search/gigs");
     } catch {

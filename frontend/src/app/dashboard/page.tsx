@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [myPlan, setMyPlan] = useState<any>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("overview");
   const [dark, setDark] = useState(false);
@@ -27,20 +28,23 @@ export default function Dashboard() {
   const loadData = async () => {
     const token = localStorage.getItem("token");
     try {
-      const [gR, oR, sR, plR] = await Promise.all([
+      const [gR, oR, sR, plR, unR] = await Promise.all([
         fetch(`${API_URL}/gigs/my`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/orders?role=selling`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/users/stats`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/subscriptions/my-plan`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/messages/unread/count`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const gD = await gR.json();
       const oD = await oR.json();
       const sD = await sR.json();
       const plD = await plR.json();
+      const unD = await unR.json();
       setGigs(Array.isArray(gD) ? gD : []);
       setOrders(Array.isArray(oD) ? oD : []);
       setStats(sD);
       setMyPlan(plD);
+      setUnreadCount(unD?.count || unD?.total || 0);
     } catch {}
     setLoading(false);
   };
@@ -75,7 +79,7 @@ export default function Dashboard() {
     { id: "profile", label: "Perfil" },
   ];
 
-  const sidebarItem = (label: string, onClick: () => void, active = false) => (
+  const sidebarItem = (label: string, onClick: () => void, active = false, badge = 0) => (
     <div
       key={label}
       onClick={() => { onClick(); setMobileNavOpen(false); }}
@@ -88,9 +92,15 @@ export default function Dashboard() {
         marginBottom: 2,
         background: active ? accB : "transparent",
         color: active ? accT : sub,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
       }}
     >
-      {label}
+      <span>{label}</span>
+      {badge > 0 && (
+        <span style={{ background: "#ef4444", color: "#fff", fontSize: 10.5, fontWeight: 700, borderRadius: 20, padding: "1px 7px", minWidth: 18, textAlign: "center" }}>{badge}</span>
+      )}
     </div>
   );
 
@@ -117,6 +127,7 @@ export default function Dashboard() {
   };
 
   const orderStatusMap: any = {
+    pending_payment: { label: "Aguarda pagamento", bg: dark ? "#2a0f0f" : "#fef2f2", col: dark ? "#fca5a5" : "#991b1b" },
     pending: { label: "Pendente", bg: dark ? "#271c00" : "#fffbeb", col: dark ? "#fcd34d" : "#92400e" },
     in_progress: { label: "Em progresso", bg: accB, col: accT },
     revision_requested: { label: "Revisao pedida", bg: dark ? "#271c00" : "#fffbeb", col: dark ? "#fcd34d" : "#92400e" },
@@ -178,9 +189,8 @@ export default function Dashboard() {
           {navItems.map(it => sidebarItem(it.label, () => setTab(it.id), tab === it.id))}
 
           <div style={{ fontSize: 10, fontWeight: 600, color: sub, textTransform: "uppercase", letterSpacing: "0.8px", padding: "14px 8px 4px" }}>Financas</div>
+          {sidebarItem("Mensagens", () => router.push("/messages"), false, unreadCount)}
           {[
-            { label: "Mensagens", route: "/messages" },
-            { label: "Contratos", route: "/contracts" },
             { label: "Pagamentos", route: "/payments" },
             { label: "Disputas", route: "/disputes" },
           ].map(it => sidebarItem(it.label, () => router.push(it.route)))}
@@ -220,8 +230,11 @@ export default function Dashboard() {
             <button onClick={() => router.push("/create-gig")} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: "#6366f1", fontSize: 13, cursor: "pointer", color: "#fff", fontWeight: 600 }}>
               + Publicar Servico
             </button>
-            <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500 }}>
+            <button onClick={() => router.push("/messages")} style={{ padding: "6px 14px", borderRadius: 8, border: `1px solid ${bord}`, background: surf2, fontSize: 13, cursor: "pointer", color: txt, fontWeight: 500, position: "relative" }}>
               Mensagens
+              {unreadCount > 0 && (
+                <span style={{ position: "absolute", top: -6, right: -6, background: "#ef4444", color: "#fff", fontSize: 10, fontWeight: 700, borderRadius: 20, padding: "1px 6px", minWidth: 16 }}>{unreadCount}</span>
+              )}
             </button>
           </div>
         </div>
