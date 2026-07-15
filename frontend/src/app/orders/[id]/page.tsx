@@ -278,7 +278,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div style={{ paddingTop: "16px", marginTop: "16px", borderTop: "1px solid #e4e5e7" }}>
+          <div style={{ paddingTop: "16px", marginTop: "16px", borderTop: "1px solid #e4e5e7", display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <Link
               href={`/messages?userId=${isClient ? order.freelancer_id : order.client_id}`}
               className="btn-outline"
@@ -287,6 +287,14 @@ export default function OrderDetailPage() {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
               Mensagem para {isClient ? order.freelancer_name : order.client_name}
             </Link>
+            {order.payment_status === "paid" && (
+              <Link
+                href={`/disputes?orderId=${order.id}`}
+                style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 600, color: "#e6392f", border: "1px solid #e6392f", borderRadius: "6px", padding: "7px 14px" }}
+              >
+                Abrir disputa
+              </Link>
+            )}
           </div>
 
           {extras.length > 0 && (

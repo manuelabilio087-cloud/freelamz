@@ -543,7 +543,7 @@ export default function AdminPanel() {
                   <div key={i} style={{ padding: "18px 24px", borderBottom: `1px solid ${bord}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10, marginBottom: 8 }}>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: txt, marginBottom: 3 }}>{d.project_title || `Contrato #${d.contract_id}`}</div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: txt, marginBottom: 3 }}>{d.title || (d.order_id ? `Encomenda #${d.order_id}` : `Contrato #${d.contract_id}`)}</div>
                         <div style={{ fontSize: 12, color: acc, fontWeight: 600 }}>{d.reason}</div>
                       </div>
                       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

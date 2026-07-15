@@ -146,6 +146,7 @@ export default function Navbar() {
                       { href: "/affiliates", label: "Programa de afiliados" },
                       { href: "/analytics", label: "Analytics" },
                       { href: "/payments", label: "Pagamentos" },
+                      { href: "/disputes", label: "Disputas" },
                     ].map((l) => (
                       <Link key={l.href} href={l.href} onClick={() => setDropdownOpen(false)} style={{ display: "block", padding: "11px 16px", color: COLORS.text, textDecoration: "none", fontSize: "13.5px" }}>
                         {l.label}
@@ -217,6 +218,7 @@ export default function Navbar() {
                     { href: "/affiliates", label: "Programa de afiliados" },
                     { href: "/analytics", label: "Analytics" },
                     { href: "/payments", label: "Pagamentos" },
+                    { href: "/disputes", label: "Disputas" },
                   ].map((l) => (
                     <Link key={l.href} href={l.href} onClick={() => setMobileOpen(false)} style={{ padding: "12px 8px", color: COLORS.text, textDecoration: "none", fontSize: "15px", borderBottom: `1px solid ${COLORS.border}` }}>
                       {l.label}

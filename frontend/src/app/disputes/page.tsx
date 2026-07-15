@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
@@ -22,12 +22,16 @@ const STATUS_COLORS: any = {
 
 export default function DisputesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preselectOrderId = searchParams.get("orderId");
   const [user, setUser] = useState<any>(null);
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [contractId, setContractId] = useState("");
+  const [showForm, setShowForm] = useState(!!preselectOrderId);
+  const [targetType, setTargetType] = useState<"order" | "contract">(preselectOrderId ? "order" : "order");
+  const [targetId, setTargetId] = useState(preselectOrderId || "");
   const [reason, setReason] = useState(REASONS[0]);
   const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -44,28 +48,35 @@ export default function DisputesPage() {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const [dRes, cRes] = await Promise.all([
+      const [dRes, cRes, oRes] = await Promise.all([
         fetch(`${API_URL}/disputes/my`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/contracts`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/orders`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const dData = await dRes.json();
       const cData = await cRes.json();
+      const oData = await oRes.json();
       setDisputes(Array.isArray(dData) ? dData : []);
       setContracts(Array.isArray(cData) ? cData.filter((c: any) => c.status === "active") : []);
+      const orderList = Array.isArray(oData) ? oData : (oData.orders || []);
+      setOrders(orderList.filter((o: any) => o.payment_status === "paid"));
     } catch {}
     setLoading(false);
   };
 
   const handleSubmit = async () => {
-    if (!contractId || !description.trim()) { setError("Preenche todos os campos."); return; }
+    if (!targetId || !description.trim()) { setError("Preenche todos os campos."); return; }
     setSubmitting(true);
     setError("");
     try {
       const token = localStorage.getItem("token");
+      const body = targetType === "order"
+        ? { order_id: Number(targetId), reason, description }
+        : { contract_id: Number(targetId), reason, description };
       const res = await fetch(`${API_URL}/disputes`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ contract_id: Number(contractId), reason, description }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -73,7 +84,7 @@ export default function DisputesPage() {
       } else {
         setSuccess("Disputa aberta com sucesso! A equipa Freelamz vai analisar em breve.");
         setShowForm(false);
-        setContractId("");
+        setTargetId("");
         setDescription("");
         fetchData();
         setTimeout(() => setSuccess(""), 6000);
@@ -101,6 +112,9 @@ export default function DisputesPage() {
         .form-label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 6px; color: #374151; }
         .form-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e8eaf0; border-radius: 10px; font-size: 14px; outline: none; font-family: inherit; background: #fff; color: #1a1d27; }
         .form-input:focus { border-color: #6366f1; }
+        .type-toggle { display: flex; gap: 8px; margin-bottom: 16px; }
+        .type-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1.5px solid #e8eaf0; background: #fff; font-weight: 600; font-size: 13px; cursor: pointer; color: #6b7280; }
+        .type-btn.active { border-color: #6366f1; background: #eef2ff; color: #4f46e5; }
         .form-actions { display: flex; gap: 12px; margin-top: 20px; }
         .btn-submit { flex: 1; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; padding: 13px; border-radius: 10px; font-weight: 700; font-size: 15px; border: none; cursor: pointer; }
         .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -130,7 +144,7 @@ export default function DisputesPage() {
       <Navbar />
       <div className="container">
         <div className="page-title">Disputas</div>
-        <div className="page-sub">Abre uma disputa se tiveres algum problema com um contrato.</div>
+        <div className="page-sub">Abre uma disputa se tiveres algum problema com uma encomenda ou contrato.</div>
 
         {success && <div className="alert alert-success">{success}</div>}
         {error && <div className="alert alert-error">{error}</div>}
@@ -139,15 +153,38 @@ export default function DisputesPage() {
         {showForm && (
           <div className="card">
             <div className="card-title" style={{ marginBottom: "20px" }}>Nova Disputa</div>
-            <div className="form-group">
-              <label className="form-label">Contrato *</label>
-              <select className="form-input" value={contractId} onChange={e => setContractId(e.target.value)}>
-                <option value="">Seleciona um contrato activo...</option>
-                {contracts.map((c: any) => (
-                  <option key={c.id} value={c.id}>#{c.id} — {c.project_title || `Contrato ${c.id}`}</option>
-                ))}
-              </select>
+
+            <div className="type-toggle">
+              <button className={`type-btn ${targetType === "order" ? "active" : ""}`} onClick={() => { setTargetType("order"); setTargetId(""); }}>
+                Encomenda (gig)
+              </button>
+              <button className={`type-btn ${targetType === "contract" ? "active" : ""}`} onClick={() => { setTargetType("contract"); setTargetId(""); }}>
+                Contrato (projecto)
+              </button>
             </div>
+
+            {targetType === "order" ? (
+              <div className="form-group">
+                <label className="form-label">Encomenda *</label>
+                <select className="form-input" value={targetId} onChange={e => setTargetId(e.target.value)}>
+                  <option value="">Seleciona uma encomenda paga...</option>
+                  {orders.map((o: any) => (
+                    <option key={o.id} value={o.id}>#{o.id} — {o.gig_title || `Encomenda ${o.id}`}</option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="form-group">
+                <label className="form-label">Contrato *</label>
+                <select className="form-input" value={targetId} onChange={e => setTargetId(e.target.value)}>
+                  <option value="">Seleciona um contrato activo...</option>
+                  {contracts.map((c: any) => (
+                    <option key={c.id} value={c.id}>#{c.id} — {c.project_title || `Contrato ${c.id}`}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div className="form-group">
               <label className="form-label">Motivo *</label>
               <select className="form-input" value={reason} onChange={e => setReason(e.target.value)}>
@@ -201,7 +238,7 @@ export default function DisputesPage() {
               return (
                 <div key={i} className="dispute-item">
                   <div className="dispute-top">
-                    <div className="dispute-title">{d.project_title || `Contrato #${d.contract_id}`}</div>
+                    <div className="dispute-title">{d.title || (d.order_id ? `Encomenda #${d.order_id}` : `Contrato #${d.contract_id}`)}</div>
                     <span className="status-badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
                   </div>
                   <div className="dispute-reason">{d.reason}</div>
