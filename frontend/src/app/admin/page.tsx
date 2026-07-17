@@ -36,6 +36,7 @@ export default function AdminPanel() {
   const [projects, setProjects] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [disputes, setDisputes] = useState<any[]>([]);
+  const [payouts, setPayouts] = useState<any[]>([]);
   const [revenue, setRevenue] = useState<any>(null);
 
   /* newsletter */
@@ -70,15 +71,16 @@ export default function AdminPanel() {
 
   const loadAll = async () => {
     try {
-      const [uR, gR, pR, oR, rR, dR] = await Promise.all([
+      const [uR, gR, pR, oR, rR, dR, poR] = await Promise.all([
         fetch(`${API_URL}/users/all?limit=100`, { headers: authH() }),
         fetch(`${API_URL}/gigs/admin/all`, { headers: authH() }),
         fetch(`${API_URL}/projects`, { headers: authH() }),
         fetch(`${API_URL}/orders/admin/all`, { headers: authH() }),
         fetch(`${API_URL}/subscriptions/revenue`, { headers: authH() }),
         fetch(`${API_URL}/disputes/all`, { headers: authH() }),
+        fetch(`${API_URL}/payments/payouts`, { headers: authH() }),
       ]);
-      const [uD, gD, pD, oD, rD, dD] = await Promise.all([uR.json(), gR.json(), pR.json(), oR.json(), rR.json(), dR.json()]);
+      const [uD, gD, pD, oD, rD, dD, poD] = await Promise.all([uR.json(), gR.json(), pR.json(), oR.json(), rR.json(), dR.json(), poR.json()]);
       // getAllUsers devolve { users, total, page, limit } (paginado), nao um array simples
       const usersArr = Array.isArray(uD) ? uD : Array.isArray(uD?.users) ? uD.users : [];
       setUsers(usersArr);
@@ -87,6 +89,7 @@ export default function AdminPanel() {
       setOrders(Array.isArray(oD) ? oD : []);
       if (rR.ok) setRevenue(rD);
       setDisputes(Array.isArray(dD) ? dD : []);
+      setPayouts(Array.isArray(poD) ? poD : []);
       if (!uR.ok || !gR.ok || !pR.ok || !oR.ok || !dR.ok) {
         console.error("Um ou mais pedidos ao servidor falharam", { uR: uR.status, gR: gR.status, pR: pR.status, oR: oR.status, dR: dR.status });
       }
@@ -119,6 +122,11 @@ export default function AdminPanel() {
     if (!resolution) return;
     const res = await fetch(`${API_URL}/disputes/${id}/resolve`, { method: "PUT", headers: jsonH(), body: JSON.stringify({ resolution, status: "resolved" }) });
     if (res.ok) setDisputes(d => d.map(x => x.id === id ? { ...x, status: "resolved", resolution } : x));
+  };
+  const markPayoutPaid = async (freelancerId: number, freelancerName: string, total: number) => {
+    if (!confirm(`Confirmas que ja transferiste ${Number(total).toLocaleString()} MT para ${freelancerName} via M-Pesa?`)) return;
+    const res = await fetch(`${API_URL}/payments/payouts/${freelancerId}/mark-paid`, { method: "POST", headers: jsonH() });
+    if (res.ok) setPayouts(p => p.filter(x => x.freelancer_id !== freelancerId));
   };
   const sendNewsletter = async () => {
     if (!nlSubject.trim() || !nlMessage.trim()) return;
@@ -164,6 +172,7 @@ export default function AdminPanel() {
     { id: "projects",  label: "Projectos",      color: "#8b5cf6", icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" },
     { id: "orders",    label: "Encomendas",     color: "#0ea5e9", icon: "M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" },
     { id: "revenue",   label: "Receita",        color: grn, icon: "M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" },
+    { id: "payouts",   label: "Pagar Freelancers", color: grn, icon: "M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4M4 6v12c0 1.1.9 2 2 2h14v-4M18 12a2 2 0 0 0 0 4h4v-4z" },
     { id: "disputes",  label: "Disputas",       color: red, icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
     { id: "newsletter",label: "Newsletter",     color: acc, icon: "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" },
   ];
@@ -530,6 +539,36 @@ export default function AdminPanel() {
           )}
 
           {/* ── DISPUTES ── */}
+          {tab === "payouts" && (
+            <div className="fade">
+              <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 14, overflow: "hidden" }}>
+                <div style={{ padding: "20px 24px", borderBottom: `1px solid ${bord}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 16, color: txt }}>Pagar Freelancers</div>
+                    <div style={{ fontSize: 12, color: sub, marginTop: 3 }}>Transfere manualmente via M-Pesa e depois marca como pago. O sistema ainda nao cobra nem paga automaticamente.</div>
+                  </div>
+                  {payouts.length > 0 && badge(`${payouts.length} por pagar`, red, redL)}
+                </div>
+                {payouts.length === 0 ? (
+                  <div style={{ padding: 48, textAlign: "center", color: sub }}>Nenhum pagamento pendente. Todos os freelancers estao em dia.</div>
+                ) : payouts.map((p, i) => (
+                  <div key={i} style={{ padding: "18px 24px", borderBottom: `1px solid ${bord}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: txt, marginBottom: 3 }}>{p.freelancer_name}</div>
+                      <div style={{ fontSize: 12, color: sub }}>
+                        {p.phone ? `M-Pesa: ${p.phone}` : "Sem numero de telefone registado"} · {p.num_payments} pagamento{p.num_payments > 1 ? "s" : ""} · desde {new Date(p.oldest_payment).toLocaleDateString("pt-PT")}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                      <div style={{ fontWeight: 800, fontSize: 17, color: grn }}>{Number(p.total_owed).toLocaleString()} MT</div>
+                      <Btn label="Marcar como pago" color={grn} bg={grnL} onClick={() => markPayoutPaid(p.freelancer_id, p.freelancer_name, p.total_owed)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {tab === "disputes" && (
             <div className="fade">
               <div style={{ background: surf, border: `1px solid ${bord}`, borderRadius: 14, overflow: "hidden" }}>

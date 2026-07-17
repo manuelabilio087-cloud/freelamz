@@ -204,4 +204,47 @@ const getFinancialSummary = async (req, res) => {
   }
 };
 
-module.exports = { initiatePayment, getMyPayments, getFinancialSummary };
+// ADMIN: quanto cada freelancer tem para receber, ainda nao transferido manualmente
+const getPendingPayouts = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+        u.id as freelancer_id,
+        u.name as freelancer_name,
+        u.phone,
+        COUNT(p.id) as num_payments,
+        SUM(p.amount * 0.95) as total_owed,
+        MIN(p.created_at) as oldest_payment
+       FROM payments p
+       JOIN users u ON p.receiver_id = u.id
+       WHERE p.status = 'completed'
+         AND p.payout_status = 'pending'
+         AND p.description NOT LIKE '%Subscrição%'
+       GROUP BY u.id, u.name, u.phone
+       ORDER BY total_owed DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao buscar payouts pendentes:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+// ADMIN: marca todos os pagamentos pendentes de um freelancer como ja transferidos
+const markPayoutsPaid = async (req, res) => {
+  const { freelancerId } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE payments SET payout_status = 'paid_out', updated_at = NOW()
+       WHERE receiver_id = $1 AND status = 'completed' AND payout_status = 'pending'
+       RETURNING id`,
+      [freelancerId]
+    );
+    res.json({ message: `${result.rows.length} pagamento(s) marcados como transferidos.`, count: result.rows.length });
+  } catch (err) {
+    console.error('Erro ao marcar payouts:', err);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+module.exports = { initiatePayment, getMyPayments, getFinancialSummary, getPendingPayouts, markPayoutsPaid };
