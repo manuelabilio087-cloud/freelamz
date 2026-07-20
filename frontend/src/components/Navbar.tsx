@@ -14,10 +14,16 @@ const XIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" 
 
 const Logo = () => (
   <svg width="130" height="32" viewBox="0 0 200 50" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="50" height="50" rx="12" fill="#1f2937"/>
-    <rect x="13" y="10" width="5" height="28" rx="2" fill={COLORS.green}/>
-    <rect x="13" y="10" width="20" height="5" rx="2" fill={COLORS.green}/>
-    <rect x="13" y="22" width="15" height="5" rx="2" fill={COLORS.green}/>
+    <defs>
+      <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#34D97A"/>
+        <stop offset="100%" stopColor="#1FAE5C"/>
+      </linearGradient>
+    </defs>
+    <circle cx="25" cy="25" r="23" fill="url(#navLogoGrad)"/>
+    <path d="M 15 14 L 15 36 M 15 14 L 33 14 M 15 24 L 29 24"
+          stroke="#08160E" strokeWidth="4.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+    <circle cx="35" cy="14" r="2.6" fill="#08160E"/>
     <text x="60" y="34" fontFamily="Inter, Arial, sans-serif" fontSize="22" fontWeight="700" fill="#f3f4f6" letterSpacing="-0.5">freel<tspan fill={COLORS.green}>amz</tspan></text>
   </svg>
 );
