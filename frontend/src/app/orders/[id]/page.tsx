@@ -29,6 +29,7 @@ interface OrderDetail {
   requirements: string;
   delivery_date: string;
   status: string;
+  payment_status: string;
   revisions_used: number;
   revisions_allowed: number;
   delivered_at?: string;
