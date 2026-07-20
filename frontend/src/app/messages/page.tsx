@@ -1,11 +1,11 @@
 ﻿"use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = "https://freelamz-production.up.railway.app/api";
 
-export default function Messages() {
+function MessagesForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const startUserId = searchParams.get("userId");
@@ -273,5 +273,13 @@ export default function Messages() {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </>
+  );
+}
+
+export default function Messages() {
+  return (
+    <Suspense fallback={null}>
+      <MessagesForm />
+    </Suspense>
   );
 }

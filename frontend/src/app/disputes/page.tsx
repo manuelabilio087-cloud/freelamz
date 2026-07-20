@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
 
@@ -20,7 +20,7 @@ const STATUS_COLORS: any = {
   closed: { bg: "#f3f4f6", color: "#6b7280", label: "Fechada" },
 };
 
-export default function DisputesPage() {
+function DisputesForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preselectOrderId = searchParams.get("orderId");
@@ -258,5 +258,13 @@ export default function DisputesPage() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function DisputesPage() {
+  return (
+    <Suspense fallback={null}>
+      <DisputesForm />
+    </Suspense>
   );
 }

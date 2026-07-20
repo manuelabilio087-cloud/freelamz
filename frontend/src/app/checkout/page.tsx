@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/Navbar";
@@ -11,7 +11,7 @@ interface CheckoutData {
   selectedPackage: { id: number; title: string; price: string };
 }
 
-export default function Checkout() {
+function CheckoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resumeOrderId = searchParams.get("orderId");
@@ -265,5 +265,13 @@ export default function Checkout() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <Suspense fallback={null}>
+      <CheckoutForm />
+    </Suspense>
   );
 }
